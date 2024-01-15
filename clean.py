@@ -2,6 +2,15 @@
 
 import os
 import glob
+import datetime
+import shutil
+
+
+def compress_csv_files(directory):
+    date_str = datetime.datetime.now().strftime("%Y_%m_%d")
+    archive_name = f"BCCTV_ONU's_DUMP-{date_str}"
+    shutil.make_archive(archive_name, "zip", directory)
+    print(f"Compressed CSV files into {archive_name}.zip")
 
 
 def delete_files_in_directories(directory_paths):
@@ -9,11 +18,10 @@ def delete_files_in_directories(directory_paths):
         if not os.path.isdir(directory):
             print(f"Directory not found: {directory}")
             continue
-        for filename in os.listdir(directory):
-            file_path = os.path.join(directory, filename)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-                print(f"Deleted file: {file_path}")
+        for xml_file in glob.glob(os.path.join(directory, "*.xml")):
+            if os.path.isfile(xml_file):
+                os.remove(xml_file)
+                print(f"Deleted file: {xml_file}")
 
 
 def delete_csv_files_in_directory(directory):
@@ -33,6 +41,7 @@ directory_paths = [
     "csv/",
 ]
 
+compress_csv_files("csv/")
 delete_csv_files_in_directory(".")
 delete_files_in_directories(directory_paths)
 print("Done!")
