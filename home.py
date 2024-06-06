@@ -11,8 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 def send_login_request(ip):
     url = f"http://{ip}/boaform/admin/formLogin"
     headers = {
-        # Your headers here
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Accept": "*/*",
         "Content-Type": "application/x-www-form-urlencoded",
     }
@@ -29,8 +27,6 @@ def send_login_request(ip):
 def send_download_request(ip):
     url = f"http://{ip}/boaform/formSaveConfig"
     headers = {
-        # Your headers here
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Accept": "*/*",
         "Content-Type": "application/x-www-form-urlencoded",
     }

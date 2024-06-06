@@ -42,7 +42,7 @@ def process_ip_range(ip_range):
 
 def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
-    ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
+    ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/15')]
 
     logging.info("Starting IP range processing.")
     alive_ips, dead_ips = process_ip_range(ip_range)

@@ -13,24 +13,17 @@ def send_login_request(ip, code, csrf):
     try:
         link = f"http://{ip}/boaform/admin/formLogin"
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
             "Content-Type": "application/x-www-form-urlencoded",
             "Origin": f"http://{ip}",
             "Connection": "keep-alive",
             "Referer": f"http://{ip}/admin/login.asp",
-            "Upgrade-Insecure-Requests": "1",
         }
         data = {
             "username1": "admin",
             "psd1": "stdONUioi",
             "verification_code": code,
-            "loginSelinit": "0",
             "username": "admin",
             "psd": "stdONUioi",
-            "sec_lang": "0",
             "csrftoken": csrf,
         }
 
@@ -45,15 +38,10 @@ def download_request(ip, csrf):
     try:
         link = f"http://{ip}/boaform/admin/formMgmConfig"
         headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5",
-            "Accept-Encoding": "gzip, deflate",
             "Content-Type": "application/x-www-form-urlencoded",
             "Origin": f"http://{ip}",
             "Connection": "keep-alive",
             "Referer": f"http://{ip}/mgm_config_file.asp",
-            "Upgrade-Insecure-Requests": "1",
         }
 
         data = {"action": "saveconfigfile", "submit-url": "", "csrftoken": csrf}

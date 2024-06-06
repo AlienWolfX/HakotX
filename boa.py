@@ -11,12 +11,6 @@ def send_login_request(session, ip):
     """Sends a login request to the specified IP address."""
     url = f"http://{ip}/boaform/webLogin"
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate",
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest",
         "Origin": f"http://{ip}",
         "Connection": "keep-alive",
         "Referer": f"http://{ip}/login.asp",
@@ -24,7 +18,7 @@ def send_login_request(session, ip):
     data = {"username": "super", "password": "kingT#92Su"}
 
     response = session.post(url, headers=headers, data=data)
-    response.raise_for_status()  # Raise an exception if the request fails
+    response.raise_for_status() 
     logging.info(f"Login request sent successfully to {ip}")
 
 
@@ -32,20 +26,15 @@ def send_download_request(session, ip):
     """Sends a download request to the specified IP address."""
     url = f"http://{ip}/boaform/settingConfig"
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate",
         "Content-Type": "application/x-www-form-urlencoded",
         "Origin": f"http://{ip}",
         "Connection": "keep-alive",
         "Referer": f"http://{ip}/page/config.asp?0",
-        "Upgrade-Insecure-Requests": "1",
     }
     data = {"config_backup": "Backup"}
 
     response = session.post(url, headers=headers, data=data)
-    response.raise_for_status()  # Raise an exception if the request fails
+    response.raise_for_status() 
 
     filename = f"{ip}.xml"
     folder_path = "boa_xml"
