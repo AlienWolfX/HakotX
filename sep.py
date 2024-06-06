@@ -1,90 +1,100 @@
 import requests
-from multiprocessing.pool import ThreadPool
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def check_ip(ip):
+def check_ip(ip, timeout=2):
     ip = ip.strip()
     url = f"http://{ip}"
 
     try:
         response = requests.get(url, timeout=timeout)
-        response.raise_for_status()  # Check for any HTTP errors
-    except requests.exceptions.RequestException:
-        print(f"IP {ip} failed to respond within the timeout")
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logging.info(f"IP {ip} failed to respond within the timeout: {e}")
         return None
 
     if 'src="admin/LoginFiles/custom.jpg"' in response.text:
-        print(f"IP {ip} is XPON")
+        logging.info(f"IP {ip} is XPON")
         return "xpon", ip
 
-    elif (
-        "Copyright (c) Realtek Semiconductor Corp., 2003. All Rights Reserved."
-        in response.text
-    ):
-        print(f"IP {ip} is Realtek GPON")
+    elif "Copyright (c) Realtek Semiconductor Corp., 2003. All Rights Reserved." in response.text:
+        logging.info(f"IP {ip} is Realtek GPON")
         return "realtek", ip
 
     elif "add by runt for bug#0001004 on 20190404" in response.text:
-        print(f"IP {ip} is Uniway")
+        logging.info(f"IP {ip} is Uniway")
         return "uniway", ip
 
     elif "Home Gateway" in response.text:
-        print(f"IP {ip} is Home Gateway")
+        logging.info(f"IP {ip} is Home Gateway")
         return "home_gateway", ip
 
     elif '<img src="web/images/logo.png" alt="">' in response.text:
-        print(f"IP {ip} is Onu WEB System (mini-httpd)")
+        logging.info(f"IP {ip} is Onu WEB System (mini-httpd)")
         return "mini", ip
 
     elif "/doc/page/login.asp?_" in response.text:
-        print(f"IP {ip} is HIKVision")
+        logging.info(f"IP {ip} is HIKVision")
         return "hik", ip
 
     elif "login.asp" in response.text:
-        print(f"IP {ip} is Onu WEB System (boa)")
+        logging.info(f"IP {ip} is Onu WEB System (boa)")
         return "boa", ip
 
     elif "LuCI - Lua Configuration Interface" in response.text:
-        print(f"IP {ip} is LuCi")
+        logging.info(f"IP {ip} is LuCi")
         return "luci", ip
 
     else:
-        print("Unknown")
+        logging.info(f"IP {ip} is Unknown")
         return "unknown", ip
 
+def main():
+    # Read IP list from file
+    try:
+        with open("alive.txt", "r") as file:
+            ip_list = file.read().splitlines()
+    except Exception as e:
+        logging.error(f"Error reading IP list from file: {e}")
+        return
 
-# Read IP list from file
-with open("alive.txt", "r") as file:
-    ip_list = file.read().splitlines()
+    # Create a ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_ip = {executor.submit(check_ip, ip): ip for ip in ip_list}
 
-timeout = 2
+        # Create lists to store results for each IP type
+        ip_results = {
+            "uniway": [],
+            "realtek": [],
+            "home_gateway": [],
+            "mini": [],
+            "boa": [],
+            "luci": [],
+            "unknown": [],
+            "hik": [],
+            "xpon": [],
+        }
 
-# Create a ThreadPool with the number of desired workers
-pool = ThreadPool(processes=10)
+        # Collect the results and populate the respective IP lists
+        for future in as_completed(future_to_ip):
+            try:
+                result = future.result()
+                if result is not None:
+                    ip_type, ip = result
+                    ip_results[ip_type].append(ip)
+            except Exception as e:
+                logging.error(f"Error processing IP {future_to_ip[future]}: {e}")
 
-# Create lists to store results for each IP type
-ip_results = {
-    "uniway": [],
-    "realtek": [],
-    "home_gateway": [],
-    "mini": [],
-    "boa": [],
-    "luci": [],
-    "unknown": [],
-    "hik": [],
-    "xpon": [],
-}
+    # Save results to files
+    for ip_type, ips in ip_results.items():
+        try:
+            with open(f"{ip_type}.txt", "w") as file:
+                file.write("\n".join(ips))
+            logging.info(f"Results for {ip_type} saved to {ip_type}.txt")
+        except Exception as e:
+            logging.error(f"Error saving results for {ip_type}: {e}")
 
-# Use ThreadPool to asynchronously process each IP
-results = pool.map(check_ip, ip_list)
-
-# Collect the results and populate the respective IP lists
-for result in results:
-    if result is not None:
-        ip_type, ip = result
-        ip_results[ip_type].append(ip)
-
-# Save results to files
-for ip_type, ips in ip_results.items():
-    with open(f"{ip_type}.txt", "w") as file:
-        file.write("\n".join(ips))
+if __name__ == "__main__":
+    main()

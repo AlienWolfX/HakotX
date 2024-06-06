@@ -1,10 +1,16 @@
 import os
 import telnetlib
 import csv
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 USERNAME = "root"
 PASSWORD = "rootktcatv"
-
+LUCI_CONF_FOLDER = "luci_conf"
+CSV_FILE = "luci.csv"
 
 def find_option_value(option_name, file_content, start_index):
     option_index = file_content.find(option_name, start_index)
@@ -17,107 +23,99 @@ def find_option_value(option_name, file_content, start_index):
 
     return value, end_index
 
-
 def telnet_login(host, username, password):
-    # Connect to the Telnet server
-    tn = telnetlib.Telnet(host)
+    try:
+        tn = telnetlib.Telnet(host)
 
-    # Wait for the login prompt
-    tn.read_until(b"ktcatv login: ")
-    print("Received login prompt")
+        tn.read_until(b"ktcatv login: ")
+        tn.write(username.encode("utf-8") + b"\n")
 
-    # Send the username
-    tn.write(username.encode("utf-8") + b"\n")
-    print("Sent username")
+        tn.read_until(b"Password: ")
+        tn.write(password.encode("utf-8") + b"\n")
 
-    # Wait for the password prompt
-    tn.read_until(b"Password: ")
-    print("Received password prompt")
+        tn.read_until(b"# ")
+        logging.info(f"Logged into {host} successfully")
 
-    # Send the password
-    tn.write(password.encode("utf-8") + b"\n")
-    print("Sent password")
-
-    # Wait for the command prompt
-    tn.read_until(b"# ")
-    print("Received command prompt")
-
-    return tn
-
+        return tn
+    except Exception as e:
+        logging.error(f"Failed to login to {host}: {str(e)}")
+        return None
 
 def execute_command(tn, command):
-    # Send the command
-    tn.write(command.encode("utf-8") + b"\n")
-    print("Sent command:", command)
+    try:
+        tn.write(command.encode("utf-8") + b"\n")
+        tn.read_until(b" ")
+        output = tn.read_until(b"# ").decode("utf-8")
+        logging.info("Command executed successfully")
 
-    # Wait for the command output
-    tn.read_until(b" ")
-    output = tn.read_until(b"# ").decode("utf-8")
-    print("Received command output")
+        return output
+    except Exception as e:
+        logging.error(f"Failed to execute command: {str(e)}")
+        return ""
 
-    return output
+def save_configuration(ip_address, content):
+    try:
+        filename = os.path.join(LUCI_CONF_FOLDER, f"{ip_address}.txt")
+        with open(filename, "w") as file:
+            file.write(content)
+        logging.info(f"Configuration saved for IP: {ip_address}")
+    except Exception as e:
+        logging.error(f"Failed to save configuration for {ip_address}: {str(e)}")
 
+def process_ip(ip_address):
+    tn = telnet_login(ip_address, USERNAME, PASSWORD)
+    if tn:
+        command_output = execute_command(tn, "uci export")
+        save_configuration(ip_address, command_output)
+        tn.close()
 
 def tocsv():
-    luci_conf_folder = "luci_conf"
-    csv_file = "luci.csv"
+    file_names = os.listdir(LUCI_CONF_FOLDER)
 
-    # Get the list of files in luci_conf folder
-    file_names = os.listdir(luci_conf_folder)
+    try:
+        with open(CSV_FILE, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["IP Address", "SSID", "Key"])
 
-    # Open the CSV file for writing
-    with open(csv_file, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["IP Address", "SSID", "Key"])
+            for file_name in file_names:
+                file_path = os.path.join(LUCI_CONF_FOLDER, file_name)
 
-        # Process each file in luci_conf folder
-        for file_name in file_names:
-            file_path = os.path.join(luci_conf_folder, file_name)
+                with open(file_path, "r") as f:
+                    file_content = f.read()
 
-            # Read the content of the file
-            with open(file_path, "r") as f:
-                file_content = f.read()
+                ssid = find_option_value("option ssid", file_content, 0)[0]
 
-            # Find option ssid value
-            ssid = find_option_value("option ssid", file_content, 0)[0]
-
-            # Find option key value (second instance)
-            key_start_index = 0
-            key_count = 0
-            while True:
-                key, key_end_index = find_option_value(
-                    "option key", file_content, key_start_index
-                )
-                if not key:
-                    break
-                key_start_index = key_end_index
-                key_count += 1
-                if key_count == 2:
-                    # Write the data to the CSV file
-                    ip_address = file_name[:-4]  # Remove the .txt extension
-                    writer.writerow([ip_address, ssid, key])
-                    break
-
+                key_start_index = 0
+                key_count = 0
+                while True:
+                    key, key_end_index = find_option_value("option key", file_content, key_start_index)
+                    if not key:
+                        break
+                    key_start_index = key_end_index
+                    key_count += 1
+                    if key_count == 2:
+                        ip_address = file_name[:-4]  # Remove the .txt extension
+                        writer.writerow([ip_address, ssid, key])
+                        break
+        logging.info(f"Data written to CSV file {CSV_FILE}")
+    except Exception as e:
+        logging.error(f"Failed to write to CSV file: {str(e)}")
 
 def main():
-    # Read IP addresses from luci.txt file
     with open("luci.txt", "r") as file:
         ip_addresses = file.read().splitlines()
 
-    # Create luci_conf directory if it doesn't exist
-    os.makedirs("luci_conf", exist_ok=True)
+    os.makedirs(LUCI_CONF_FOLDER, exist_ok=True)
 
-    for ip_address in ip_addresses:
-        tn = telnet_login(ip_address, USERNAME, PASSWORD)
-        command_output = execute_command(tn, "uci export")
-        filename = f"luci_conf/{ip_address}.txt"
-        with open(filename, "w") as file:
-            file.write(command_output)
-        tn.close()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(process_ip, ip): ip for ip in ip_addresses}
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"An error occurred during processing: {str(e)}")
 
-        print(f"Configuration exported for IP: {ip_address}. Saved to: {filename}")
     tocsv()
-
 
 if __name__ == "__main__":
     main()

