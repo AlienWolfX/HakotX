@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 USERNAME = "root"
 PASSWORD = "rootktcatv"
 LUCI_CONF_FOLDER = "luci_conf"
-CSV_FILE = "luci.csv"
+CSV_FILE = "luci_pass.csv"
 
 def find_option_value(option_name, file_content, start_index):
     option_index = file_content.find(option_name, start_index)
@@ -75,7 +75,7 @@ def tocsv():
     try:
         with open(CSV_FILE, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["IP Address", "SSID", "Key"])
+            writer.writerow(["IP Address", "SSID", "KeyPassphrase"])
 
             for file_name in file_names:
                 file_path = os.path.join(LUCI_CONF_FOLDER, file_name)

@@ -5,14 +5,6 @@ import glob
 import datetime
 import shutil
 
-
-# def compress_csv_files(directory):
-#     date_str = datetime.datetime.now().strftime("%Y_%m_%d")
-#     archive_name = f"BCCTV_ONU's_DUMP-{date_str}"
-#     shutil.make_archive(archive_name, "zip", directory)
-#     print(f"Compressed CSV files into {archive_name}.zip")
-
-
 def delete_files_in_directories(directory_paths):
     for directory in directory_paths:
         if not os.path.isdir(directory):
@@ -41,7 +33,6 @@ directory_paths = [
     "csv/",
 ]
 
-# compress_csv_files("csv/")
 delete_csv_files_in_directory(".")
 delete_files_in_directories(directory_paths)
 print("Done!")

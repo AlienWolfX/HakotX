@@ -79,7 +79,7 @@ def write_pairs_to_csv(pairs, file_path):
     try:
         with open(file_path, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["IP", "SSID", "Next KeyPassphrase"])
+            writer.writerow(["IP", "SSID", "KeyPassphrase"])
             writer.writerows(pairs)
         logging.info(f"Data written to CSV file {file_path}")
     except Exception as e:
