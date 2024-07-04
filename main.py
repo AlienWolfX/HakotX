@@ -42,7 +42,7 @@ def process_ip_range(ip_range):
 
 def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
-    ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/15')]
+    ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
 
     logging.info("Starting IP range processing.")
     alive_ips, dead_ips = process_ip_range(ip_range)
@@ -62,7 +62,7 @@ def main():
         logging.error(f"Failed to save dead IPs: {e}")
 
     try:
-        subprocess.run(["mv", "*.csv", "csv/"], shell=True, check=True)
+        subprocess.run(["mv", "*.csv", "csv/"], shell=True, check=False)
         subprocess.run(["python", "clean.py"], check=True)
         subprocess.run(["python", "sep.py"], check=True)
         logging.info("Subprocesses completed successfully.")
