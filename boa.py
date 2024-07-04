@@ -101,13 +101,11 @@ def parse_xml_files(directory):
 
 
 def save_to_csv(pairs, output_file):
-    """Saves a list of (IP, SSID, KeyPassphrase) tuples to a CSV file."""
+    sorted_pairs = sorted(pairs, key=lambda x: x[0])
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP Address", "SSID", "KeyPassphrase"])  # Write header
-
-        for ip, ssid, keypassphrase in pairs:
-            writer.writerow([ip, ssid, keypassphrase])
+        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerows(sorted_pairs)
 
 
 if __name__ == "__main__":

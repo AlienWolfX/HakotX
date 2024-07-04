@@ -113,10 +113,11 @@ def parse_xml_files(directory):
 
 
 def save_to_csv(pairs, output_file):
+    sorted_pairs = sorted(pairs, key=lambda x: x[0])
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["IP", "SSID", "KeyPassphrase"])
-        writer.writerows(pairs)
+        writer.writerows(sorted_pairs)
 
 
 def main():

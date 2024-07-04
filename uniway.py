@@ -87,17 +87,11 @@ def parse_xml_files(directory):
     return ssid_key_pairs
 
 def save_to_csv(pairs, output_file):
-    """Saves the specified pairs to a CSV file."""
-    try:
-        with open(output_file, "w", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow(["IP", "SSID", "KeyPassphrase"])
-
-            for ip, ssid, keypassphrase in pairs:
-                writer.writerow([ip, ssid, keypassphrase])
-        logging.info(f"Data saved to CSV file: {output_file}")
-    except Exception as e:
-        logging.error(f"Failed to save to CSV file: {e}")
+    sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    with open(output_file, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerows(sorted_pairs)
 
 def main():
     with open("uniway.txt", "r") as file:
