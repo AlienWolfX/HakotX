@@ -1,6 +1,7 @@
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -23,7 +24,7 @@ def check_ip(ip, timeout=2):
         logging.info(f"IP {ip} is Realtek GPON")
         return "realtek", ip
 
-    elif "add by runt for bug#0001004 on 20190404" in response.text:
+    elif "add by runt for bug#0001004 on 20190404" in response.text or "/* Added by peichao for mission#0007440 */" in response.text:
         logging.info(f"IP {ip} is Uniway")
         return "uniway", ip
 
@@ -39,7 +40,7 @@ def check_ip(ip, timeout=2):
         logging.info(f"IP {ip} is HIKVision")
         return "hik", ip
 
-    elif "login.asp" in response.text:
+    elif f'document.location = "login.asp";;' in response.text:
         logging.info(f"IP {ip} is Onu WEB System (boa)")
         return "boa", ip
 
@@ -87,11 +88,12 @@ def main():
             except Exception as e:
                 logging.error(f"Error processing IP {future_to_ip[future]}: {e}")
 
-    # Save results to files
+    # Sort IP addresses in each category and save results to files
     for ip_type, ips in ip_results.items():
         try:
+            sorted_ips = sorted(ips, key=lambda ip: int(ipaddress.IPv4Address(ip)))
             with open(f"{ip_type}.txt", "w") as file:
-                file.write("\n".join(ips))
+                file.write("\n".join(sorted_ips))
             logging.info(f"Results for {ip_type} saved to {ip_type}.txt")
         except Exception as e:
             logging.error(f"Error saving results for {ip_type}: {e}")
