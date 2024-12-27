@@ -2,8 +2,6 @@
 
 import os
 import glob
-import datetime
-import shutil
 
 def delete_files_in_directories(directory_paths):
     for directory in directory_paths:
@@ -30,7 +28,6 @@ directory_paths = [
     "mini_xml/",
     "realtek_xml/",
     "uniway_xml/",
-    "csv/",
 ]
 
 delete_csv_files_in_directory(".")

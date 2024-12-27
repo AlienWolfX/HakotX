@@ -3,11 +3,21 @@ import socket
 import subprocess
 import logging
 import ipaddress
+import signal
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+stop_script = False
+
+def signal_handler(sig, frame):
+    global stop_script
+    logging.info("Signal received, stopping the script...")
+    stop_script = True
+
 def check_ip(ip):
     """Checks if the specified IP address is alive."""
+    if stop_script:
+        return ip, False
     try:
         socket.setdefaulttimeout(2)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -26,6 +36,8 @@ def process_ip_range(ip_range):
         futures = {executor.submit(check_ip, ip): ip for ip in ip_range}
 
         for future in concurrent.futures.as_completed(futures):
+            if stop_script:
+                break
             ip = futures[future]
             try:
                 ip, is_alive = future.result()
@@ -47,6 +59,10 @@ def main():
     logging.info("Starting IP range processing.")
     alive_ips, dead_ips = process_ip_range(ip_range)
     
+    if stop_script:
+        logging.info("Script stopped before completion.")
+        return
+
     try:
         with open("alive.txt", "w") as alive_file:
             alive_file.write("\n".join(alive_ips))
@@ -62,13 +78,53 @@ def main():
         logging.error(f"Failed to save dead IPs: {e}")
 
     try:
-        subprocess.run(["mv", "*.csv", "csv/"], shell=True, check=False)
+        # subprocess.run(["mv", "*.csv", "csv/"], shell=True, check=False)
         subprocess.run(["python", "clean.py"], check=True)
         subprocess.run(["python", "sep.py"], check=True)
         logging.info("Subprocesses completed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
+      
+    # Downoading Configuration Files
+    
+    # try:
+    #     subprocess.run(["python", "boa.py"], check=True)
+    #     logging.info("boa.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"boa.py failed: {e}")
+
+    # try:
+    #     subprocess.run(["python", "home.py"], check=True)
+    #     logging.info("home.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"home.py failed: {e}")
+
+    # try:
+    #     subprocess.run(["python", "mini.py"], check=True)
+    #     logging.info("mini.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"mini.py failed: {e}")
+        
+    # try:
+    #     subprocess.run(["python", "luci.py"], check=True)
+    #     logging.info("luci.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"luci.py failed: {e}")
+    
+    # try:
+    #     subprocess.run(["python", "realtek.py"], check=True)
+    #     logging.info("realtek.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"realtek.py failed: {e}")
+
+    # try:
+    #     subprocess.run(["python", "uniway.py"], check=True)
+    #     logging.info("uniway.py completed successfully.")
+    # except subprocess.CalledProcessError as e:
+    #     logging.error(f"uniway.py failed: {e}")
+    
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
     main()
     logging.info("Done!")
