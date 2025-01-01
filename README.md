@@ -19,5 +19,6 @@ HakotX includes the following Python scripts:
 | home.py    | Gathers configuration for a generic boa-based web server.             |
 | realtek.py | Gathers configuration for a VSOL boa-based web server.                |
 | uniway.py  | Gathers configuration for a UNIWAY boa-based web server.              |
+| sopto.py   | Gathers configuration for a Sopot boa-based web server.               |
 
 Feel free to explore and utilize these scripts based on your specific network requirements.
