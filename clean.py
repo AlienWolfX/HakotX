@@ -25,6 +25,7 @@ directory_paths = [
     "boa_xml/",
     "home_xml/",
     "luci_conf/",
+    "sopto_xml/",
     "mini_xml/",
     "realtek_xml/",
     "uniway_xml/",
