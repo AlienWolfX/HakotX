@@ -6,5 +6,6 @@ tesr
 *.zip
 test
 *.xml
-.env
 .venv/*
+
+.env
