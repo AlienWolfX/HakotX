@@ -6,6 +6,13 @@ import xml.etree.ElementTree as ET
 import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv("REALTEK_USERNAME")
+password = os.getenv("REALTEK_PASSWORD")
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,7 +39,7 @@ def send_login_request(ip):
             "-H", f"Origin: http://{ip}",
             "-H", "Connection: keep-alive", 
             "-H", f"Referer: http://{ip}/admin/login.asp",
-            "--data-raw", f"challenge=&username=admin&password=stdONUioi&verification_code={check_code.group(1)}&save=Login&submit-url=%2Fadmin%2Flogin.asp&csrftoken={csrf_token.group(1)}",
+            "--data-raw", f"challenge=&username={username}&password={password}&verification_code={check_code.group(1)}&save=Login&submit-url=%2Fadmin%2Flogin.asp&csrftoken={csrf_token.group(1)}",
             "--insecure"
         ]
         result = subprocess.run(login_command, capture_output=True, text=True)
