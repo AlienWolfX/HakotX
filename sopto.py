@@ -1,5 +1,7 @@
 import subprocess
 import logging
+import csv
+import xml.etree.ElementTree as ET
 import os
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
@@ -69,6 +71,40 @@ def download_config(ip):
     except Exception as e:
         logging.error(f"Error downloading config from {ip}: {str(e)}")
         return False
+    
+def parse_xml_files(directory):
+    ssid_key_pairs = []
+
+    for filename in os.listdir(directory):
+        if filename.endswith(".xml"):
+            file_path = os.path.join(directory, filename)
+
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+
+                ssid = root.find(".//Value[@Name='WLAN1_SSID']")
+                ssid_5g = root.find(".//Value[@Name='ssid']")
+                keypassphrase_element = root.find(".//Value[@Name='wpaPSK']")
+
+                if ssid_5g is not None and keypassphrase_element is not None:
+                    ssid = ssid.attrib.get("Value", "")
+                    ssid_5g = ssid_5g.attrib.get("Value", "")
+                    keypassphrase = keypassphrase_element.attrib.get("Value", "")
+                    ip = filename.replace(".xml", "")
+                    ssid_key_pairs.append((ip, ssid, ssid_5g, keypassphrase))
+            except ET.ParseError as e:
+                logging.error(f"Error parsing XML file {file_path}: {e}")
+
+    return ssid_key_pairs
+
+
+def save_to_csv(pairs, output_file):
+    sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    with open(output_file, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["IP", "SSID", "SSID-5G", "KeyPassphrase"])
+        writer.writerows(sorted_pairs)
 
 def main():
     failed_operations = []
@@ -100,6 +136,9 @@ def main():
             logging.info(f"- {ip}")
     else:
         logging.info("All operations successful")
+        
+    pairs = parse_xml_files("sopto_xml")
+    save_to_csv(pairs, "sopto.csv")
 
 if __name__ == "__main__":
     main()
