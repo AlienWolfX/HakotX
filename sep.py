@@ -15,12 +15,8 @@ def check_ip(ip, timeout=2):
     except requests.exceptions.RequestException as e:
         logging.info(f"IP {ip} failed to respond within the timeout: {e}")
         return None
-
-    if 'src="admin/LoginFiles/custom.jpg"' in response.text:
-        logging.info(f"IP {ip} is XPON")
-        return "xpon", ip
     
-    elif "Welcome to XPON ONU" in response.text:
+    if "Welcome to XPON ONU" in response.text:
         logging.info(f"IP {ip} is Sopto XPON")
         return "sopto", ip
 

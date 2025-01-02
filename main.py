@@ -84,46 +84,7 @@ def main():
         logging.info("Subprocesses completed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
-      
-    # Downoading Configuration Files
-    
-    # try:
-    #     subprocess.run(["python", "boa.py"], check=True)
-    #     logging.info("boa.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"boa.py failed: {e}")
-
-    # try:
-    #     subprocess.run(["python", "home.py"], check=True)
-    #     logging.info("home.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"home.py failed: {e}")
-
-    # try:
-    #     subprocess.run(["python", "mini.py"], check=True)
-    #     logging.info("mini.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"mini.py failed: {e}")
         
-    # try:
-    #     subprocess.run(["python", "luci.py"], check=True)
-    #     logging.info("luci.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"luci.py failed: {e}")
-    
-    # try:
-    #     subprocess.run(["python", "realtek.py"], check=True)
-    #     logging.info("realtek.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"realtek.py failed: {e}")
-
-    # try:
-    #     subprocess.run(["python", "uniway.py"], check=True)
-    #     logging.info("uniway.py completed successfully.")
-    # except subprocess.CalledProcessError as e:
-    #     logging.error(f"uniway.py failed: {e}")
-    
-
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     main()
