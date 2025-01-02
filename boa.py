@@ -3,6 +3,12 @@ import requests
 import csv
 import xml.etree.ElementTree as ET
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv("BOA_USERNAME")
+password = os.getenv("BOA_PASSWORD")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,7 +27,7 @@ def send_login_request(session, ip):
         "Connection": "keep-alive",
         "Referer": f"http://{ip}/login.asp",
     }
-    data = {"username": "super", "password": "kingT#92Su"}
+    data = {"username": username, "password": password}
 
     response = session.post(url, headers=headers, data=data)
     response.raise_for_status()  # Raise an exception if the request fails

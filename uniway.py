@@ -5,8 +5,13 @@ import csv
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
+from dotenv import load_dotenv
 
-# Configure logging
+load_dotenv()
+
+username = os.getenv("UNIWAY_USERNAME")
+password = os.getenv("UNIWAY_PASSWORD")
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def send_login_request(ip, code, csrf):
@@ -19,11 +24,11 @@ def send_login_request(ip, code, csrf):
             "Referer": f"http://{ip}/admin/login.asp",
         }
         data = {
-            "username1": "admin",
-            "psd1": "stdONUioi",
+            "username1": username,
+            "psd1": password,
             "verification_code": code,
-            "username": "admin",
-            "psd": "stdONUioi",
+            "username": username,
+            "psd": password,
             "csrftoken": csrf,
         }
 

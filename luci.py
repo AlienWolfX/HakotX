@@ -3,12 +3,18 @@ import telnetlib
 import csv
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv("LUCI_USERNAME")
+password = os.getenv("LUCI_PASSWORD")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-USERNAME = "root"
-PASSWORD = "rootktcatv"
+USERNAME = username
+PASSWORD = password
 LUCI_CONF_FOLDER = "luci_conf"
 CSV_FILE = "luci_pass.csv"
 
@@ -19,7 +25,7 @@ def find_option_value(option_name, file_content, start_index):
 
     end_index = file_content.find("\n", option_index)
     value = file_content[option_index:end_index].strip()
-    value = value.split()[2][1:-1]  # Extract the value between single quotes
+    value = value.split()[2][1:-1] 
 
     return value, end_index
 

@@ -2,6 +2,12 @@ import subprocess
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv("SOPTO_USERNAME")
+password = os.getenv("SOPTO_PASSWORD")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,7 +29,7 @@ def send_login_request(ip):
         '-H', 'Sec-GPC: 1',
         '-H', 'Upgrade-Insecure-Requests: 1',
         '-H', 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)',
-        '--data-raw', 'challenge=&username=admin&password=admin&save=Login&submit-url=%2Fadmin%2Flogin.asp&postSecurityFlag=12726',
+        '--data-raw', f'challenge=&username={username}&password={password}&save=Login&submit-url=%2Fadmin%2Flogin.asp&postSecurityFlag=12726',
         '--insecure',
     ]
     try:

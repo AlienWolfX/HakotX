@@ -4,6 +4,12 @@ import xml.etree.ElementTree as ET
 import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
+
+load_dotenv()
+
+username = os.getenv("HOME_USERNAME")
+password = os.getenv("HOME_PASSWORD")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -14,7 +20,7 @@ def send_login_request(ip):
         "Accept": "*/*",
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    data = {"username": "adminisp", "psd": "adminisp"}
+    data = {"username": username, "psd": password}
 
     try:
         response = requests.post(url, headers=headers, data=data)

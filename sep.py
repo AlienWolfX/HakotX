@@ -5,7 +5,7 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def check_ip(ip, timeout=2):
+def check_ip(ip, timeout=4):
     ip = ip.strip()
     url = f"http://{ip}"
 
@@ -76,8 +76,8 @@ def main():
             "luci": [],
             "unknown": [],
             "hik": [],
-            "xpon": [],
         }
+        failed_ips = []
 
         # Collect the results and populate the respective IP lists
         for future in as_completed(future_to_ip):
@@ -86,6 +86,8 @@ def main():
                 if result is not None:
                     ip_type, ip = result
                     ip_results[ip_type].append(ip)
+                else:
+                    failed_ips.append(future_to_ip[future])
             except Exception as e:
                 logging.error(f"Error processing IP {future_to_ip[future]}: {e}")
 
@@ -98,6 +100,15 @@ def main():
             logging.info(f"Results for {ip_type} saved to {ip_type}.txt")
         except Exception as e:
             logging.error(f"Error saving results for {ip_type}: {e}")
+
+    # Save failed IPs
+    try:
+        sorted_failed = sorted(failed_ips, key=lambda ip: int(ipaddress.IPv4Address(ip)))
+        with open("sep_failed.txt", "w") as file:
+            file.write("\n".join(sorted_failed))
+        logging.info("Failed IPs saved to sep_failed.txt")
+    except Exception as e:
+        logging.error(f"Error saving failed IPs: {e}")
 
 if __name__ == "__main__":
     main()
