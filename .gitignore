@@ -7,5 +7,4 @@ tesr
 test
 *.xml
 .venv/*
-
 .env
