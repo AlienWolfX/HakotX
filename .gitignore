@@ -8,3 +8,4 @@ test
 *.xml
 .venv/*
 .env
+test/*

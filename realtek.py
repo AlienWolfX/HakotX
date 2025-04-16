@@ -42,7 +42,7 @@ def send_login_request(ip):
             "--data-raw", f"challenge=&username={username}&password={password}&verification_code={check_code.group(1)}&save=Login&submit-url=%2Fadmin%2Flogin.asp&csrftoken={csrf_token.group(1)}",
             "--insecure"
         ]
-        result = subprocess.run(login_command, capture_output=True, text=True)
+        subprocess.run(login_command, capture_output=True, text=True)
         return True
 
     except Exception as e:
@@ -67,7 +67,7 @@ def download_config(ip, csrf):
             raise Exception(f"Download failed: {result.stderr}")
         return True
     except Exception as e:
-        logging.error(f"Error downloading config from {ip}: {str(e)}")
+        logging.error(f"Error downloading config from {ip}")
         return False
 
 def parse_xml_files(directory):

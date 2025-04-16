@@ -16,6 +16,20 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+XML_DIRECTORY = "sopto_xml"
+COOKIE_DIRECTORY = "cookies"
+
+def ensure_directories():
+    """Create necessary directories if they don't exist."""
+    directories = [XML_DIRECTORY, COOKIE_DIRECTORY]
+    for directory in directories:
+        try:
+            os.makedirs(directory, exist_ok=True)
+            logging.info(f"Directory {directory} is ready")
+        except Exception as e:
+            logging.error(f"Failed to create directory {directory}: {str(e)}")
+            raise
+
 def send_login_request(ip):
     login_command = [
         'curl',
@@ -52,7 +66,7 @@ def download_config(ip):
         '-H', 'Cache-Control: max-age=0',
         '-H', 'Connection: keep-alive',
         '-H', 'Content-Type: application/x-www-form-urlencoded',
-        '-b', f'{ip}_cookies.txt',  # Use saved cookies
+        '-b', os.path.join(COOKIE_DIRECTORY, f'{ip}_cookies.txt'),  # Updated cookie path
         '-H', f'Origin: http://{ip}',
         '-H', f'Referer: http://{ip}/saveconf.asp',
         '-H', 'Sec-GPC: 1',
@@ -61,7 +75,7 @@ def download_config(ip):
         '--data-raw', 'save_cs=Backup...&submit-url=%2Fsaveconf.asp&postSecurityFlag=63991',
         '--insecure',
         '-o',
-        os.path.join("sopto_xml", f"{ip}.xml"),
+        os.path.join(XML_DIRECTORY, f"{ip}.xml"),
     ]
     try:
         result = subprocess.run(download_command, capture_output=True, text=True)
@@ -107,6 +121,9 @@ def save_to_csv(pairs, output_file):
         writer.writerows(sorted_pairs)
 
 def main():
+    # Create necessary directories first
+    ensure_directories()
+    
     failed_operations = []
     
     try:
@@ -137,7 +154,7 @@ def main():
     else:
         logging.info("All operations successful")
         
-    pairs = parse_xml_files("sopto_xml")
+    pairs = parse_xml_files(XML_DIRECTORY)  # Updated to use constant
     save_to_csv(pairs, "sopto.csv")
 
 if __name__ == "__main__":

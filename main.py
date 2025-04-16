@@ -78,7 +78,6 @@ def main():
         logging.error(f"Failed to save dead IPs: {e}")
 
     try:
-        # subprocess.run(["mv", "*.csv", "csv/"], shell=True, check=False)
         subprocess.run(["python", "clean.py"], check=True)
         subprocess.run(["python", "sep.py"], check=True)
         logging.info("Subprocesses completed successfully.")
