@@ -4,6 +4,7 @@ import subprocess
 import logging
 import ipaddress
 import signal
+import os
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -52,8 +53,23 @@ def process_ip_range(ip_range):
 
     return alive_ips, dead_ips
 
+def ensure_files_exist():
+    """Ensure that alive.txt and dead.txt files exist."""
+    files = ["alive.txt", "dead.txt"]
+    for file in files:
+        try:
+            if not os.path.exists(file):
+                with open(file, "w") as f:
+                    pass  # Create empty file
+                logging.info(f"Created {file}")
+        except Exception as e:
+            logging.error(f"Failed to create {file}: {e}")
+
 def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
+    # Create files if they don't exist
+    ensure_files_exist()
+    
     ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
 
     logging.info("Starting IP range processing.")

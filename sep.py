@@ -36,10 +36,6 @@ def check_ip(ip, timeout=4):
         logging.info(f"IP {ip} is Onu WEB System (mini-httpd)")
         return "mini", ip
 
-    elif "/doc/page/login.asp?_" in response.text:
-        logging.info(f"IP {ip} is HIKVision")
-        return "hik", ip
-
     elif f'document.location = "login.asp";;' in response.text:
         logging.info(f"IP {ip} is Onu WEB System (boa)")
         return "boa", ip
@@ -47,6 +43,10 @@ def check_ip(ip, timeout=4):
     elif "LuCI - Lua Configuration Interface" in response.text:
         logging.info(f"IP {ip} is LuCi")
         return "luci", ip
+    
+    elif f'document.location = "index.asp";' in response.text: 
+        logging.info(f"IP {ip} is GPNF14C")
+        return "gpnf14c", ip
 
     else:
         logging.info(f"IP {ip} is Unknown")
@@ -74,8 +74,8 @@ def main():
             "sopto": [],
             "boa": [],
             "luci": [],
+            "gpnf14c": [],
             "unknown": [],
-            "hik": [],
         }
         failed_ips = []
 

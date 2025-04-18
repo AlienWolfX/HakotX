@@ -33,7 +33,7 @@ directory_paths = [
 
 # Delete CSV and TXT files in current directory
 delete_files_by_extension(".", "csv")
-delete_files_by_extension(".", "txt")
+# delete_files_by_extension(".", "txt")
 
 # Delete XML files in specified directories
 delete_files_in_directories(directory_paths)
