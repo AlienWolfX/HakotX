@@ -15,8 +15,8 @@ logging.basicConfig(
 
 # Constants
 XML_DIRECTORY = "gpnf14c_xml"
-USERNAME = os.getenv("GPNF14C_USERNAME", "super")
-PASSWORD = os.getenv("GPNF14C_PASSWORD", "kingT%2392Su")
+USERNAME = os.getenv("GPNF14C_USERNAME")
+PASSWORD = os.getenv("GPNF14C_PASSWORD")
 
 def ensure_directories():
     """Create necessary directories if they don't exist."""
