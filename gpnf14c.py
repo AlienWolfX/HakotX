@@ -1,6 +1,8 @@
 import os
 import requests
 import logging
+import csv
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
@@ -15,8 +17,8 @@ logging.basicConfig(
 
 # Constants
 XML_DIRECTORY = "gpnf14c_xml"
-USERNAME = os.getenv("GPNF14C_USERNAME")
-PASSWORD = os.getenv("GPNF14C_PASSWORD")
+USERNAME = os.getenv("GPNF14C_USERNAME", "super")
+PASSWORD = os.getenv("GPNF14C_PASSWORD", "kingT%2392Su")
 
 def ensure_directories():
     """Create necessary directories if they don't exist."""
@@ -102,6 +104,64 @@ def login_and_download(ip):
         logging.error(f"Error processing {ip}: {str(e)}")
         return False
 
+def parse_xml_files():
+    """Parse XML files and extract SSID and PSK values."""
+    xml_dir = "gpnf14c_xml"
+    results = []
+
+    # Check if directory exists
+    if not os.path.exists(xml_dir):
+        logging.error(f"Directory {xml_dir} not found")
+        return results
+
+    for filename in os.listdir(xml_dir):
+        if not filename.endswith('.xml'):
+            continue
+
+        filepath = os.path.join(xml_dir, filename)
+        ip = filename.replace('.xml', '')
+
+        try:
+            # Read file as text
+            ssid_2g = ''
+            psk_2g = ''
+            ssid_5g = ''
+            psk_5g = ''
+            
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                for line in f:
+                    if 'Name="WLAN1_SSID"' in line:
+                        ssid_2g = line.split('Value="')[1].split('"')[0]
+                    elif 'Name="WLAN1_WPA_PSK"' in line:
+                        psk_2g = line.split('Value="')[1].split('"')[0]
+                    elif 'Name="SSID"' in line and not 'WLAN1_SSID' in line:
+                        ssid_5g = line.split('Value="')[1].split('"')[0]
+                    elif 'Name="WLAN_WPA_PSK"' in line:
+                        psk_5g = line.split('Value="')[1].split('"')[0]
+
+            if ssid_2g or psk_2g or ssid_5g or psk_5g:
+                results.append([ip, ssid_2g, psk_2g, ssid_5g, psk_5g])
+                logging.info(f"Processed {ip}")
+
+        except Exception as e:
+            logging.warning(f"Error processing {filepath}: {str(e)}")
+            continue
+
+    return results
+
+def save_to_csv(data):
+    """Save parsed results to CSV file."""
+    output_file = "gpnf14c.csv"
+    
+    try:
+        with open(output_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['IP', 'SSID_2G', 'PSK_2G', 'SSID_5G', 'PSK_5G'])
+            writer.writerows(data)
+        logging.info(f"Results saved to {output_file}")
+    except Exception as e:
+        logging.error(f"Failed to save CSV: {str(e)}")
+
 def main():
     """Main function to process IPs from file."""
     ensure_directories()
@@ -115,6 +175,7 @@ def main():
     
     failed_ips = []
     
+    # Download configurations
     with ThreadPoolExecutor(max_workers=5) as executor:
         for ip in ip_list:
             try:
@@ -125,11 +186,18 @@ def main():
                 failed_ips.append(ip)
     
     if failed_ips:
-        logging.info("Failed operations:")
+        logging.info("Failed downloads:")
         for ip in failed_ips:
             logging.info(f"- {ip}")
+    
+    # Parse configurations and save to CSV
+    logging.info("Starting XML parsing...")
+    results = parse_xml_files()
+    if results:
+        save_to_csv(results)
+        logging.info("XML parsing and CSV generation completed")
     else:
-        logging.info("All operations completed successfully")
+        logging.warning("No valid configurations found to parse")
 
 if __name__ == "__main__":
     main()
