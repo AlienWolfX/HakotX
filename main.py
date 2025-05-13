@@ -67,7 +67,6 @@ def ensure_files_exist():
 
 def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
-    # Create files if they don't exist
     ensure_files_exist()
     
     ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
