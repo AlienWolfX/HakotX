@@ -60,7 +60,7 @@ def ensure_files_exist():
         try:
             if not os.path.exists(file):
                 with open(file, "w") as f:
-                    pass  # Create empty file
+                    pass 
                 logging.info(f"Created {file}")
         except Exception as e:
             logging.error(f"Failed to create {file}: {e}")
