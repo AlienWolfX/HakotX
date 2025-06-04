@@ -15,8 +15,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 USERNAME = username
 PASSWORD = password
-LUCI_CONF_FOLDER = "luci_conf"
-CSV_FILE = "luci_pass.csv"
+LUCI_CONF_FOLDER = "./luci_conf"
+CSV_FILE = "./csv/luci_pass.csv"
 
 def find_option_value(option_name, file_content, start_index):
     option_index = file_content.find(option_name, start_index)
@@ -108,7 +108,7 @@ def tocsv():
         logging.error(f"Failed to write to CSV file: {str(e)}")
 
 def main():
-    with open("luci.txt", "r") as file:
+    with open("./ips/luci.txt", "r") as file:
         ip_addresses = file.read().splitlines()
 
     os.makedirs(LUCI_CONF_FOLDER, exist_ok=True)

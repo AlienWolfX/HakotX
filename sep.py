@@ -62,7 +62,7 @@ def main():
         return
 
     # Create a ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=15) as executor:
         future_to_ip = {executor.submit(check_ip, ip): ip for ip in ip_list}
 
         # Create lists to store results for each IP type
@@ -95,7 +95,7 @@ def main():
     for ip_type, ips in ip_results.items():
         try:
             sorted_ips = sorted(ips, key=lambda ip: int(ipaddress.IPv4Address(ip)))
-            with open(f"{ip_type}.txt", "w") as file:
+            with open(f"ips/{ip_type}.txt", "w") as file:
                 file.write("\n".join(sorted_ips))
             logging.info(f"Results for {ip_type} saved to {ip_type}.txt")
         except Exception as e:

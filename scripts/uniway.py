@@ -55,7 +55,7 @@ def download_request(ip, csrf):
         resp.raise_for_status()
         
         filename = f"{ip}.xml"
-        folder_path = "uniway_xml"
+        folder_path = "./uniway_xml"
         os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, filename)
         with open(file_path, "wb") as config:
@@ -99,7 +99,7 @@ def save_to_csv(pairs, output_file):
         writer.writerows(sorted_pairs)
 
 def main():
-    with open("uniway.txt", "r") as file:
+    with open("./ips/uniway.txt", "r") as file:
         ip_list = [ip.strip() for ip in file.readlines()]
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -142,7 +142,7 @@ def process_ip(ip):
 
 if __name__ == "__main__":
     main()
-    directory_path = "uniway_xml"
-    output_file = "uniway.csv"
+    directory_path = "./uniway_xml"
+    output_file = "./csv/uniway.csv"
     pairs = parse_xml_files(directory_path)
     save_to_csv(pairs, output_file)

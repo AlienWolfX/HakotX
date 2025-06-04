@@ -54,7 +54,7 @@ def send_download_request(session, ip):
     response.raise_for_status()  # Raise an exception if the request fails
 
     filename = f"{ip}.xml"
-    folder_path = "boa_xml"
+    folder_path = "./boa_xml"
     os.makedirs(folder_path, exist_ok=True)
     file_path = os.path.join(folder_path, filename)
     with open(file_path, "wb") as file:
@@ -65,7 +65,7 @@ def send_download_request(session, ip):
 def main():
     """Main function that sends login and download requests to a list of IP addresses."""
     with requests.Session() as session:
-        with open("boa.txt", "r") as file:
+        with open("./ips/boa.txt", "r") as file:
             ip_list = file.read().splitlines()
 
         for ip in ip_list:
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     try:
         main()
         directory_path = "boa_xml"
-        output_file = "boa_pass.csv"
+        output_file = "./csv/boa_pass.csv"
 
         pairs = parse_xml_files(directory_path)
 

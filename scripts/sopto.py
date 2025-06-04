@@ -16,7 +16,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-XML_DIRECTORY = "sopto_xml"
+XML_DIRECTORY = "./sopto_xml"
 COOKIE_DIRECTORY = "cookies"
 
 def ensure_directories():
@@ -127,7 +127,7 @@ def main():
     failed_operations = []
     
     try:
-        with open("sopto.txt", "r") as file:
+        with open("./ips/sopto.txt", "r") as file:
             ip_list = [ip.strip() for ip in file.readlines()]
     except FileNotFoundError:
         logging.error("sopto.txt not found")
@@ -155,7 +155,7 @@ def main():
         logging.info("All operations successful")
         
     pairs = parse_xml_files(XML_DIRECTORY)  # Updated to use constant
-    save_to_csv(pairs, "sopto.csv")
+    save_to_csv(pairs, "./csv/sopto.csv")
 
 if __name__ == "__main__":
     main()

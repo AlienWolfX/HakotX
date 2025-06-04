@@ -62,7 +62,7 @@ def process_ip(ip):
         return None
 
 def main():
-    with open("home_gateway.txt", "r") as file:
+    with open("./ips/home_gateway.txt", "r") as file:
         ip_list = file.read().splitlines()
 
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -109,8 +109,8 @@ def save_to_csv(pairs, output_file):
 if __name__ == "__main__":
     try:
         completed_ips = main()
-        directory_path = "home_xml"
-        output_file = "home_pass.csv"
+        directory_path = "./home_xml"
+        output_file = "./csv/home_pass.csv"
 
         pairs = parse_xml_files(directory_path)
         save_to_csv(pairs, output_file)

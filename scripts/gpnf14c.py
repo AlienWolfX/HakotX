@@ -16,9 +16,9 @@ logging.basicConfig(
 )
 
 # Constants
-XML_DIRECTORY = "gpnf14c_xml"
-USERNAME = os.getenv("GPNF14C_USERNAME", "super")
-PASSWORD = os.getenv("GPNF14C_PASSWORD", "kingT%2392Su")
+XML_DIRECTORY = "./gpnf14c_xml"
+USERNAME = os.getenv("GPNF14C_USERNAME")
+PASSWORD = os.getenv("GPNF14C_PASSWORD")
 
 def ensure_directories():
     """Create necessary directories if they don't exist."""
@@ -106,7 +106,7 @@ def login_and_download(ip):
 
 def parse_xml_files():
     """Parse XML files and extract SSID and PSK values."""
-    xml_dir = "gpnf14c_xml"
+    xml_dir = "./gpnf14c_xml"
     results = []
 
     # Check if directory exists
@@ -151,7 +151,7 @@ def parse_xml_files():
 
 def save_to_csv(data):
     """Save parsed results to CSV file."""
-    output_file = "gpnf14c.csv"
+    output_file = "./csv/gpnf14c.csv"
     
     try:
         with open(output_file, 'w', newline='') as f:
@@ -167,7 +167,7 @@ def main():
     ensure_directories()
     
     try:
-        with open("gpnf14c.txt", "r") as f:
+        with open("./ips/gpnf14c.txt", "r") as f:
             ip_list = [ip.strip() for ip in f.readlines()]
     except FileNotFoundError:
         logging.error("gpnf14c.txt not found")

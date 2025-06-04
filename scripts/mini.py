@@ -9,8 +9,8 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-directory_path = "mini_xml/"
-output_file = "mini_pass.csv"
+directory_path = "./mini_xml"
+output_file = "./csv/mini_pass.csv"
 
 def remove_null_characters(dir):
     """Removes null characters from all XML files in a directory."""
@@ -86,7 +86,7 @@ def write_pairs_to_csv(pairs, file_path):
         logging.error(f"Error writing to CSV file {file_path}: {e}")
 
 def main():
-    ips = read_ips_from_file("mini.txt")
+    ips = read_ips_from_file("./ips/mini.txt")
     os.makedirs(directory_path, exist_ok=True)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:

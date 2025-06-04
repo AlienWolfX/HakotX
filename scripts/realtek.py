@@ -104,10 +104,10 @@ def save_to_csv(pairs, output_file):
 
 def main():
     failed_operations = []
-    os.makedirs("realtek_xml", exist_ok=True)
+    os.makedirs("./realtek_xml", exist_ok=True)
     
     try:
-        with open("realtek.txt", "r") as file:
+        with open("./ips/realtek.txt", "r") as file:
             ip_list = [ip.strip() for ip in file.readlines()]
     except FileNotFoundError:
         logging.error("realtek.txt not found")
@@ -137,8 +137,8 @@ def main():
         
     logging.info("Now parsing XML files")
     
-    pairs = parse_xml_files("realtek_xml")
-    save_to_csv(pairs, "realtek_pass.csv")
+    pairs = parse_xml_files("./realtek_xml")
+    save_to_csv(pairs, "./csv/realtek_pass.csv")
     
     logging.info("All Done")
 

@@ -5,6 +5,8 @@ import logging
 import ipaddress
 import signal
 import os
+import time
+import sys
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -92,12 +94,28 @@ def main():
     except Exception as e:
         logging.error(f"Failed to save dead IPs: {e}")
 
+    # Preparation
     try:
-        subprocess.run(["python", "clean.py"], check=True)
-        subprocess.run(["python", "sep.py"], check=True)
+        subprocess.run([sys.executable, "clean.py"], check=True)
+        time.sleep(2)
+        subprocess.run([sys.executable, "sep.py"], check=True)
         logging.info("Subprocesses completed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
+        
+    # Execution of other scripts
+    scripts = [
+        "realtek.py", "luci.py", "gpnf14c.py", "boa.py", "mini.py",
+        "sopto.py", "home.py", "uniway.py"
+    ]
+    for script in scripts:
+        script_path = os.path.join("scripts", script)
+        try:
+            subprocess.run([sys.executable, script_path], check=True)
+            logging.info(f"Executed {script_path} successfully.")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Failed to execute {script_path}: {e}")
+            break 
         
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
