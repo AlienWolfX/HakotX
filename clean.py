@@ -13,6 +13,10 @@ def delete_files_in_directories(directory_paths):
             if os.path.isfile(xml_file):
                 os.remove(xml_file)
                 print(f"Deleted file: {xml_file}")
+        for txt_file in glob.glob(os.path.join(directory, "*.txt")):
+            if os.path.isfile(txt_file):
+                os.remove(txt_file)
+                print(f"Deleted file: {txt_file}")
 
 def delete_files_by_extension(directory, extension):
     """Delete files with specified extension in the given directory."""
@@ -29,6 +33,7 @@ directory_paths = [
     "mini_xml/",
     "realtek_xml/",
     "uniway_xml/",
+    "gpnf14c_xml/",
 ]
 
 # Delete CSV and TXT files in current directory
