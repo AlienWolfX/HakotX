@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 import asyncio
 import telnetlib3
+import configparser
 
 load_dotenv()
 
@@ -14,10 +15,12 @@ password = os.getenv("LUCI_PASSWORD")
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-USERNAME = username
-PASSWORD = password
-LUCI_CONF_FOLDER = "./luci_conf"
-CSV_FILE = "./csv/luci_pass.csv"
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+LUCI_CONF_FOLDER = config.get('folders', 'luci_conf_folder', fallback='./luci_conf')
+CSV_FILE = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "luci_pass.csv")
 
 def find_option_value(option_name, file_content, start_index):
     option_index = file_content.find(option_name, start_index)
@@ -69,7 +72,7 @@ def save_configuration(ip_address, content):
         logging.error(f"Failed to save configuration for {ip_address}: {str(e)}")
 
 async def process_ip(ip_address):
-    connection = await telnet_login(ip_address, USERNAME, PASSWORD)
+    connection = await telnet_login(ip_address, username, password)
     if connection:
         reader, writer = connection
         command_output = await execute_command(reader, writer, "uci export")

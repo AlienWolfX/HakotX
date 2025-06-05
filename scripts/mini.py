@@ -6,11 +6,16 @@ import concurrent.futures
 import re
 import fileinput
 import logging
+import configparser
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-directory_path = "./mini_xml"
-output_file = "./csv/mini_pass.csv"
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+directory_path = config.get('folders', 'mini_xml_folder', fallback='./mini_xml')
+output_file = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "mini_pass.csv")
 
 def remove_null_characters(dir):
     """Removes null characters from all XML files in a directory."""

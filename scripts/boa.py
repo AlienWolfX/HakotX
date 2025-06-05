@@ -4,6 +4,7 @@ import csv
 import xml.etree.ElementTree as ET
 import logging
 from dotenv import load_dotenv
+import configparser
 
 load_dotenv()
 
@@ -11,6 +12,13 @@ username = os.getenv("BOA_USERNAME")
 password = os.getenv("BOA_PASSWORD")
 
 logging.basicConfig(level=logging.INFO)
+
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+BOA_XML_FOLDER = config.get('folders', 'boa_xml_folder', fallback='./boa_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 
 def send_login_request(session, ip):
@@ -54,9 +62,8 @@ def send_download_request(session, ip):
     response.raise_for_status()  # Raise an exception if the request fails
 
     filename = f"{ip}.xml"
-    folder_path = "./boa_xml"
-    os.makedirs(folder_path, exist_ok=True)
-    file_path = os.path.join(folder_path, filename)
+    os.makedirs(BOA_XML_FOLDER, exist_ok=True)
+    file_path = os.path.join(BOA_XML_FOLDER, filename)
     with open(file_path, "wb") as file:
         file.write(response.content)
     logging.info(f"Downloaded file saved: {file_path}")
@@ -117,8 +124,8 @@ def save_to_csv(pairs, output_file):
 if __name__ == "__main__":
     try:
         main()
-        directory_path = "boa_xml"
-        output_file = "./csv/boa_pass.csv"
+        directory_path = BOA_XML_FOLDER
+        output_file = os.path.join(CSV_FOLDER, "boa_pass.csv")
 
         pairs = parse_xml_files(directory_path)
 

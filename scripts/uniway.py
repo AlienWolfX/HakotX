@@ -6,6 +6,7 @@ import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from dotenv import load_dotenv
+import configparser
 
 load_dotenv()
 
@@ -13,6 +14,13 @@ username = os.getenv("UNIWAY_USERNAME")
 password = os.getenv("UNIWAY_PASSWORD")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+UNIWAY_XML_FOLDER = config.get('folders', 'uniway_xml_folder', fallback='./uniway_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 def send_login_request(ip, code, csrf):
     try:
@@ -55,9 +63,8 @@ def download_request(ip, csrf):
         resp.raise_for_status()
         
         filename = f"{ip}.xml"
-        folder_path = "./uniway_xml"
-        os.makedirs(folder_path, exist_ok=True)
-        file_path = os.path.join(folder_path, filename)
+        os.makedirs(UNIWAY_XML_FOLDER, exist_ok=True)
+        file_path = os.path.join(UNIWAY_XML_FOLDER, filename)
         with open(file_path, "wb") as config:
             config.write(resp.content)
         logging.info(f"Downloaded file saved: {file_path}")
@@ -93,6 +100,8 @@ def parse_xml_files(directory):
 
 def save_to_csv(pairs, output_file):
     sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    # Ensure the CSV output directory exists
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["IP", "SSID", "KeyPassphrase"])
@@ -142,7 +151,7 @@ def process_ip(ip):
 
 if __name__ == "__main__":
     main()
-    directory_path = "./uniway_xml"
-    output_file = "./csv/uniway.csv"
+    directory_path = UNIWAY_XML_FOLDER
+    output_file = os.path.join(CSV_FOLDER, "uniway.csv")
     pairs = parse_xml_files(directory_path)
     save_to_csv(pairs, output_file)

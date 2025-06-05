@@ -5,6 +5,7 @@ import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
+import configparser
 
 load_dotenv()
 
@@ -13,6 +14,13 @@ password = os.getenv("HOME_PASSWORD")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+HOME_XML_FOLDER = config.get('folders', 'home_xml_folder', fallback='./home_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 def send_login_request(ip):
     url = f"http://{ip}/boaform/admin/formLogin"
@@ -42,9 +50,8 @@ def send_download_request(ip):
         response = requests.post(url, headers=headers, data=data)
         response.raise_for_status()
         filename = f"{ip}.xml"
-        folder_path = "home_xml"
-        os.makedirs(folder_path, exist_ok=True)
-        file_path = os.path.join(folder_path, filename)
+        os.makedirs(HOME_XML_FOLDER, exist_ok=True)
+        file_path = os.path.join(HOME_XML_FOLDER, filename)
         with open(file_path, "wb") as file:
             file.write(response.content)
         logging.info(f"Downloaded file saved: {file_path}")
@@ -109,8 +116,8 @@ def save_to_csv(pairs, output_file):
 if __name__ == "__main__":
     try:
         completed_ips = main()
-        directory_path = "./home_xml"
-        output_file = "./csv/home_pass.csv"
+        directory_path = HOME_XML_FOLDER
+        output_file = os.path.join(CSV_FOLDER, "home_pass.csv")
 
         pairs = parse_xml_files(directory_path)
         save_to_csv(pairs, output_file)

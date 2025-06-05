@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import os
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+import configparser
 
 load_dotenv()
 
@@ -16,8 +17,13 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-XML_DIRECTORY = "./sopto_xml"
-COOKIE_DIRECTORY = "cookies"
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+XML_DIRECTORY = config.get('folders', 'sopto_xml_folder', fallback='./sopto_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
+COOKIE_DIRECTORY = config.get('folders', 'cookie_folder', fallback='./cookies')
 
 def ensure_directories():
     """Create necessary directories if they don't exist."""
@@ -66,7 +72,7 @@ def download_config(ip):
         '-H', 'Cache-Control: max-age=0',
         '-H', 'Connection: keep-alive',
         '-H', 'Content-Type: application/x-www-form-urlencoded',
-        '-b', os.path.join(COOKIE_DIRECTORY, f'{ip}_cookies.txt'),  # Updated cookie path
+        '-b', os.path.join(COOKIE_DIRECTORY, f'{ip}_cookies.txt'),
         '-H', f'Origin: http://{ip}',
         '-H', f'Referer: http://{ip}/saveconf.asp',
         '-H', 'Sec-GPC: 1',
@@ -112,9 +118,10 @@ def parse_xml_files(directory):
 
     return ssid_key_pairs
 
-
 def save_to_csv(pairs, output_file):
     sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    # Ensure the CSV output directory exists
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["IP", "SSID", "SSID-5G", "KeyPassphrase"])
@@ -154,8 +161,8 @@ def main():
     else:
         logging.info("All operations successful")
         
-    pairs = parse_xml_files(XML_DIRECTORY)  # Updated to use constant
-    save_to_csv(pairs, "./csv/sopto.csv")
+    pairs = parse_xml_files(XML_DIRECTORY)
+    save_to_csv(pairs, os.path.join(CSV_FOLDER, "sopto.csv"))
 
 if __name__ == "__main__":
     main()

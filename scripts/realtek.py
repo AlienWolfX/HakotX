@@ -7,17 +7,24 @@ import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
+import configparser
 
 load_dotenv()
 
 username = os.getenv("REALTEK_USERNAME")
 password = os.getenv("REALTEK_PASSWORD")
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+REALTEK_XML_FOLDER = config.get('folders', 'realtek_xml_folder', fallback='./realtek_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 def send_login_request(ip):
     try:
@@ -59,7 +66,7 @@ def download_config(ip, csrf):
         "-H", f"Referer: http://{ip}/saveconf.asp",
         "--data-raw", f"save_cs=Backup+as+file&csrftoken={csrf}",
         "--insecure",
-        "-o", os.path.join("realtek_xml", f"{ip}.xml")
+        "-o", os.path.join(REALTEK_XML_FOLDER, f"{ip}.xml")
     ]
     try:
         result = subprocess.run(download_command, capture_output=True, text=True)
@@ -94,9 +101,10 @@ def parse_xml_files(directory):
 
     return ssid_key_pairs
 
-
 def save_to_csv(pairs, output_file):
     sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    # Ensure the CSV output directory exists
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["IP", "SSID", "KeyPassphrase"])
@@ -104,7 +112,7 @@ def save_to_csv(pairs, output_file):
 
 def main():
     failed_operations = []
-    os.makedirs("./realtek_xml", exist_ok=True)
+    os.makedirs(REALTEK_XML_FOLDER, exist_ok=True)
     
     try:
         with open("./ips/realtek.txt", "r") as file:
@@ -137,8 +145,8 @@ def main():
         
     logging.info("Now parsing XML files")
     
-    pairs = parse_xml_files("./realtek_xml")
-    save_to_csv(pairs, "./csv/realtek_pass.csv")
+    pairs = parse_xml_files(REALTEK_XML_FOLDER)
+    save_to_csv(pairs, os.path.join(CSV_FOLDER, "realtek_pass.csv"))
     
     logging.info("All Done")
 

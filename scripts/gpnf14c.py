@@ -2,12 +2,19 @@ import os
 import requests
 import logging
 import csv
-import xml.etree.ElementTree as ET
+import configparser
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Load config properties
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
+
+XML_DIRECTORY = config.get('folders', 'gpnf14c_xml_folder', fallback='./gpnf14c_xml')
+CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 # Configure logging
 logging.basicConfig(
@@ -15,8 +22,6 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Constants
-XML_DIRECTORY = "./gpnf14c_xml"
 USERNAME = os.getenv("GPNF14C_USERNAME")
 PASSWORD = os.getenv("GPNF14C_PASSWORD")
 
@@ -106,7 +111,7 @@ def login_and_download(ip):
 
 def parse_xml_files():
     """Parse XML files and extract SSID and PSK values."""
-    xml_dir = "./gpnf14c_xml"
+    xml_dir = XML_DIRECTORY
     results = []
 
     # Check if directory exists
@@ -151,7 +156,7 @@ def parse_xml_files():
 
 def save_to_csv(data):
     """Save parsed results to CSV file."""
-    output_file = "./csv/gpnf14c.csv"
+    output_file = os.path.join(CSV_FOLDER, "gpnf14c.csv")
     
     try:
         with open(output_file, 'w', newline='') as f:
