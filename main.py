@@ -7,8 +7,9 @@ import signal
 import os
 import time
 import sys
+from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 stop_script = False
 
@@ -38,7 +39,7 @@ def process_ip_range(ip_range):
     with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
         futures = {executor.submit(check_ip, ip): ip for ip in ip_range}
 
-        for future in concurrent.futures.as_completed(futures):
+        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Checking IPs"):
             if stop_script:
                 break
             ip = futures[future]
@@ -103,19 +104,19 @@ def main():
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
         
-    # Execution of other scripts
-    scripts = [
-        "realtek.py", "luci.py", "gpnf14c.py", "boa.py", "mini.py",
-        "sopto.py", "home.py", "uniway.py"
-    ]
-    for script in scripts:
-        script_path = os.path.join("scripts", script)
-        try:
-            subprocess.run([sys.executable, script_path], check=True)
-            logging.info(f"Executed {script_path} successfully.")
-        except subprocess.CalledProcessError as e:
-            logging.error(f"Failed to execute {script_path}: {e}")
-            break 
+    # # Execution of other scripts
+    # scripts = [
+    #     "realtek.py", "luci.py", "gpnf14c.py", "boa.py", "mini.py",
+    #     "sopto.py", "home.py", "uniway.py"
+    # ]
+    # for script in scripts:
+    #     script_path = os.path.join("scripts", script)
+    #     try:
+    #         subprocess.run([sys.executable, script_path], check=True)
+    #         logging.info(f"Executed {script_path} successfully.")
+    #     except subprocess.CalledProcessError as e:
+    #         logging.error(f"Failed to execute {script_path}: {e}")
+    #         break 
         
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
