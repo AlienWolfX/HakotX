@@ -109,7 +109,7 @@ def parse_xml_files(directory):
 def save_to_csv(pairs, output_file):
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerow(["IP", "SSID_2G", "PSK_2G"])
         writer.writerows(pairs)
     logging.info(f"Data written to CSV file {output_file}")
 

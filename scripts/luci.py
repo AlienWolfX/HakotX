@@ -1,10 +1,9 @@
 import os
 import csv
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-import asyncio
-import telnetlib3
+import telnetlib
 import configparser
 
 load_dotenv()
@@ -33,31 +32,41 @@ def find_option_value(option_name, file_content, start_index):
 
     return value, end_index
 
-async def telnet_login(host, username, password):
+def telnet_login(host, username, password):
     try:
-        reader, writer = await telnetlib3.open_connection(host, 23)
+        if not isinstance(username, str) or not isinstance(password, str):
+            raise ValueError("Username or password is not set or not a string.")
 
-        await writer.write(username.encode("utf-8") + b"\n")
-        await writer.drain()
-
-        await writer.write(password.encode("utf-8") + b"\n")
-        await writer.drain()
-
+        tn = telnetlib.Telnet(host, 23, timeout=10)
+        tn.read_until(b"login: ")
+        tn.write(username.encode("utf-8") + b"\n")
+        tn.read_until(b"Password: ")
+        tn.write(password.encode("utf-8") + b"\n")
         logging.info(f"Logged into {host} successfully")
-
-        return reader, writer
+        return tn
     except Exception as e:
         logging.error(f"Failed to login to {host}: {str(e)}")
         return None
 
-async def execute_command(reader, writer, command):
+def execute_command(tn, command):
     try:
-        await writer.write(command.encode("utf-8") + b"\n")
-        await writer.drain()
-        output = await reader.readuntil(b"# ")
+        # Flush any banner or prompt before sending the command
+        tn.read_until(b"# ", timeout=10)
+        tn.write(command.encode("utf-8") + b"\n")
+        # Read until the prompt appears again (after command output)
+        output = tn.read_until(b"# ", timeout=20)
         logging.info("Command executed successfully")
-
-        return output.decode("utf-8")
+        # Remove the command echo and prompt from the output
+        output_str = output.decode("utf-8", errors="ignore")
+        # Optionally, remove the command itself and the prompt from the output
+        output_lines = output_str.splitlines()
+        # Remove the first line if it is the command echo
+        if output_lines and output_lines[0].strip() == command:
+            output_lines = output_lines[1:]
+        # Remove the last line if it is the prompt
+        if output_lines and output_lines[-1].strip().endswith("#"):
+            output_lines = output_lines[:-1]
+        return "\n".join(output_lines)
     except Exception as e:
         logging.error(f"Failed to execute command: {str(e)}")
         return ""
@@ -71,14 +80,17 @@ def save_configuration(ip_address, content):
     except Exception as e:
         logging.error(f"Failed to save configuration for {ip_address}: {str(e)}")
 
-async def process_ip(ip_address):
-    connection = await telnet_login(ip_address, username, password)
-    if connection:
-        reader, writer = connection
-        command_output = await execute_command(reader, writer, "uci export")
+def process_ip(ip_address):
+    tn = telnet_login(ip_address, username, password)
+    if tn:
+        # Flush banner and prompt after login
+        try:
+            tn.read_until(b"# ", timeout=10)
+        except Exception:
+            pass
+        command_output = execute_command(tn, "uci export")
         save_configuration(ip_address, command_output)
-        writer.close()
-        await writer.wait_closed()
+        tn.close()
 
 def tocsv():
     file_names = os.listdir(LUCI_CONF_FOLDER)
@@ -86,7 +98,7 @@ def tocsv():
     try:
         with open(CSV_FILE, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["IP Address", "SSID", "KeyPassphrase"])
+            writer.writerow(["IP", "SSID_2G", "PSK_2G"])
 
             for file_name in file_names:
                 file_path = os.path.join(LUCI_CONF_FOLDER, file_name)
@@ -105,32 +117,23 @@ def tocsv():
                     key_start_index = key_end_index
                     key_count += 1
                     if key_count == 2:
-                        ip_address = file_name[:-4]  # Remove the .txt extension
+                        ip_address = file_name[:-4] 
                         writer.writerow([ip_address, ssid, key])
                         break
         logging.info(f"Data written to CSV file {CSV_FILE}")
     except Exception as e:
         logging.error(f"Failed to write to CSV file: {str(e)}")
 
-async def main():
+def main():
     with open("./ips/luci.txt", "r") as file:
         ip_addresses = file.read().splitlines()
 
     os.makedirs(LUCI_CONF_FOLDER, exist_ok=True)
 
-    loop = asyncio.get_running_loop()
     with ThreadPoolExecutor(max_workers=10) as executor:
-        tasks = [
-            loop.create_task(loop.run_in_executor(executor, asyncio.run, process_ip(ip)))
-            for ip in ip_addresses
-        ]
-        for task in asyncio.as_completed(tasks):
-            try:
-                await task
-            except Exception as e:
-                logging.error(f"An error occurred during processing: {str(e)}")
+        list(executor.map(process_ip, ip_addresses))
 
     tocsv()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

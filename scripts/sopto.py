@@ -103,16 +103,18 @@ def parse_xml_files(directory):
                 tree = ET.parse(file_path)
                 root = tree.getroot()
 
-                ssid = root.find(".//Value[@Name='WLAN1_SSID']")
-                ssid_5g = root.find(".//Value[@Name='ssid']")
-                keypassphrase_element = root.find(".//Value[@Name='wpaPSK']")
+                ssid_2g = root.find(".//Value[@Name='WLAN1_SSID']")
+                psk_2g = root.find(".//Value[@Name='WLAN1_WPA_PSK']")
+                ssid_5g = root.find(".//Value[@Name='SSID']")
+                psk_5g = root.find(".//Value[@Name='WLAN_WPA_PSK']")
 
-                if ssid_5g is not None and keypassphrase_element is not None:
-                    ssid = ssid.attrib.get("Value", "")
+                if ssid_2g is not None and psk_2g is not None and ssid_5g is not None and psk_5g is not None:
+                    ssid_2g = ssid_2g.attrib.get("Value", "")
+                    psk_2g = psk_2g.attrib.get("Value", "")
                     ssid_5g = ssid_5g.attrib.get("Value", "")
-                    keypassphrase = keypassphrase_element.attrib.get("Value", "")
+                    psk_5g = psk_5g.attrib.get("Value", "")
                     ip = filename.replace(".xml", "")
-                    ssid_key_pairs.append((ip, ssid, ssid_5g, keypassphrase))
+                    ssid_key_pairs.append((ip, ssid_2g, psk_2g, ssid_5g, psk_5g))
             except ET.ParseError as e:
                 logging.error(f"Error parsing XML file {file_path}: {e}")
 
@@ -124,7 +126,7 @@ def save_to_csv(pairs, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "SSID-5G", "KeyPassphrase"])
+        writer.writerow(["IP", "SSID_2G", "PSK_2G", "SSID_5G", "PSK_5G"])
         writer.writerows(sorted_pairs)
 
 def main():

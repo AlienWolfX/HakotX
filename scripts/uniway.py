@@ -104,7 +104,7 @@ def save_to_csv(pairs, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerow(["IP", "SSID_2G", "PSK_2G"])
         writer.writerows(sorted_pairs)
 
 def main():
