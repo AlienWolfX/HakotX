@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
 
-LUCI_CONF_FOLDER = config.get('folders', 'luci_conf_folder', fallback='./luci_conf')
-CSV_FILE = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "luci_pass.csv")
+LUCI_CONF_FOLDER = config.get('folders', 'luci_conf_folder', fallback='./ar9331_conf')
+CSV_FILE = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "ar9331.csv")
 
 def find_option_value(option_name, file_content, start_index):
     option_index = file_content.find(option_name, start_index)
@@ -125,7 +125,7 @@ def tocsv():
         logging.error(f"Failed to write to CSV file: {str(e)}")
 
 def main():
-    with open("./ips/luci.txt", "r") as file:
+    with open("./ips/AR9331.txt", "r") as file:
         ip_addresses = file.read().splitlines()
 
     os.makedirs(LUCI_CONF_FOLDER, exist_ok=True)

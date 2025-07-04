@@ -14,8 +14,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
 
-directory_path = config.get('folders', 'mini_xml_folder', fallback='./mini_xml')
-output_file = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "mini_pass.csv")
+directory_path = config.get('folders', 'pn_bh2_03_02_xml', fallback='./pn_bh2_03_02_xml')
+output_file = os.path.join(config.get('folders', 'csv_folder', fallback='./csv'), "pn_bh2_03_02.csv")
 
 def remove_null_characters(dir):
     """Removes null characters from all XML files in a directory."""
@@ -91,7 +91,7 @@ def write_pairs_to_csv(pairs, file_path):
         logging.error(f"Error writing to CSV file {file_path}: {e}")
 
 def main():
-    ips = read_ips_from_file("./ips/mini.txt")
+    ips = read_ips_from_file("./ips/PN_BH2_03-02.txt")
     os.makedirs(directory_path, exist_ok=True)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:

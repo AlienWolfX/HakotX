@@ -21,7 +21,7 @@ logging.basicConfig(
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
 
-XML_DIRECTORY = config.get('folders', 'sopto_xml_folder', fallback='./sopto_xml')
+XML_DIRECTORY = config.get('folders', 'sopto_xml_folder', fallback='./spu_ge22wd_h_xml')
 CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 COOKIE_DIRECTORY = config.get('folders', 'cookie_folder', fallback='./cookies')
 
@@ -136,10 +136,10 @@ def main():
     failed_operations = []
     
     try:
-        with open("./ips/sopto.txt", "r") as file:
+        with open("./ips/SPU-GE22WD-H.txt", "r") as file:
             ip_list = [ip.strip() for ip in file.readlines()]
     except FileNotFoundError:
-        logging.error("sopto.txt not found")
+        logging.error("SPU-GE22WD-H.txt not found")
         return
         
     with ThreadPoolExecutor(max_workers=5) as executor:
@@ -164,7 +164,7 @@ def main():
         logging.info("All operations successful")
         
     pairs = parse_xml_files(XML_DIRECTORY)
-    save_to_csv(pairs, os.path.join(CSV_FOLDER, "sopto.csv"))
+    save_to_csv(pairs, os.path.join(CSV_FOLDER, "spu_ge22wd.csv"))
 
 if __name__ == "__main__":
     main()

@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), '..', '.config.properties'))
 
-BOA_XML_FOLDER = config.get('folders', 'boa_xml_folder', fallback='./boa_xml')
+BOA_XML_FOLDER = config.get('folders', 'boa_xml_folder', fallback='./xpn_rh2_00-07_xml')
 CSV_FOLDER = config.get('folders', 'csv_folder', fallback='./csv')
 
 
@@ -73,7 +73,7 @@ def send_download_request(session, ip):
 def main():
     """Main function that sends login and download requests to a list of IP addresses."""
     with requests.Session() as session:
-        with open("./ips/boa.txt", "r") as file:
+        with open("./ips/XPN_RH2_00-07.txt", "r") as file:
             ip_list = file.read().splitlines()
 
         for ip in ip_list:
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     try:
         main()
         directory_path = BOA_XML_FOLDER
-        output_file = os.path.join(CSV_FOLDER, "boa_pass.csv")
+        output_file = os.path.join(CSV_FOLDER, "xpn_rh2_00-07.csv")
 
         pairs = parse_xml_files(directory_path)
 

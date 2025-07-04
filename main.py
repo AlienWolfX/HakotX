@@ -72,7 +72,10 @@ def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
     ensure_files_exist()
     
-    ip_range = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
+    ip_range1 = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
+    ip_range2 = [str(ip) for ip in ipaddress.IPv4Network('10.17.0.0/20')]
+    
+    ip_range = ip_range1 + ip_range2
 
     logging.info("Starting IP range processing.")
     alive_ips, dead_ips = process_ip_range(ip_range)
@@ -103,21 +106,7 @@ def main():
         logging.info("Subprocesses completed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
-        
-    # # Execution of other scripts
-    # scripts = [
-    #     "realtek.py", "luci.py", "gpnf14c.py", "boa.py", "mini.py",
-    #     "sopto.py", "home.py", "uniway.py"
-    # ]
-    # for script in scripts:
-    #     script_path = os.path.join("scripts", script)
-    #     try:
-    #         subprocess.run([sys.executable, script_path], check=True)
-    #         logging.info(f"Executed {script_path} successfully.")
-    #     except subprocess.CalledProcessError as e:
-    #         logging.error(f"Failed to execute {script_path}: {e}")
-    #         break 
-        
+
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     main()

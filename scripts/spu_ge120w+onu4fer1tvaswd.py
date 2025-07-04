@@ -68,9 +68,33 @@ def process_ip(ip):
     except requests.exceptions.RequestException:
         return None
 
+def read_ip_files():
+    """Read IPs from both SPU-GE120W-H.txt and ONU4FER1TVASWB.txt files."""
+    ip_list = []
+    files_to_read = ["./ips/SPU-GE120W-H.txt", "./ips/ONU4FER1TVASWB.txt"]
+    
+    for file_path in files_to_read:
+        try:
+            with open(file_path, "r") as file:
+                ips = file.read().splitlines()
+                ip_list.extend(ips)
+                logging.info(f"Read {len(ips)} IPs from {file_path}")
+        except FileNotFoundError:
+            logging.warning(f"File not found: {file_path}")
+        except Exception as e:
+            logging.error(f"Error reading {file_path}: {str(e)}")
+    
+    # Remove duplicates while preserving order
+    unique_ips = list(dict.fromkeys(ip_list))
+    logging.info(f"Total unique IPs to process: {len(unique_ips)}")
+    return unique_ips
+
 def main():
-    with open("./ips/home_gateway.txt", "r") as file:
-        ip_list = file.read().splitlines()
+    ip_list = read_ip_files()
+    
+    if not ip_list:
+        logging.error("No IPs found to process")
+        return []
 
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(process_ip, ip): ip for ip in ip_list}
@@ -80,6 +104,7 @@ def main():
             if result:
                 completed_ips.append(result)
 
+    logging.info(f"Successfully processed {len(completed_ips)} IPs")
     return completed_ips
 
 def parse_xml_files(directory):
@@ -107,17 +132,23 @@ def parse_xml_files(directory):
     return ssid_key_pairs
 
 def save_to_csv(pairs, output_file):
+    # Sort pairs by IP address
+    sorted_pairs = sorted(pairs, key=lambda x: x[0])
+    
+    # Ensure the CSV output directory exists
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["IP", "SSID_2G", "PSK_2G"])
-        writer.writerows(pairs)
+        writer.writerows(sorted_pairs)
     logging.info(f"Data written to CSV file {output_file}")
 
 if __name__ == "__main__":
     try:
         completed_ips = main()
         directory_path = HOME_XML_FOLDER
-        output_file = os.path.join(CSV_FOLDER, "home_pass.csv")
+        output_file = os.path.join(CSV_FOLDER, "spu_ge120w+onu4fer1tvaswb.csv")
 
         pairs = parse_xml_files(directory_path)
         save_to_csv(pairs, output_file)
