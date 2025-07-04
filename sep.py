@@ -55,7 +55,7 @@ def check_ip(ip, timeout=4):
 def main():
     # Read IP list from file
     try:
-        with open("alive.txt", "r") as file:
+        with open("ips/alive.txt", "r") as file:
             ip_list = file.read().splitlines()
     except Exception as e:
         logging.error(f"Error reading IP list from file: {e}")
@@ -104,7 +104,7 @@ def main():
     # Save failed IPs
     try:
         sorted_failed = sorted(failed_ips, key=lambda ip: int(ipaddress.IPv4Address(ip)))
-        with open("sep_failed.txt", "w") as file:
+        with open("ips/sep_failed.txt", "w") as file:
             file.write("\n".join(sorted_failed))
         logging.info("Failed IPs saved to sep_failed.txt")
     except Exception as e:

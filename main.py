@@ -58,7 +58,7 @@ def process_ip_range(ip_range):
 
 def ensure_files_exist():
     """Ensure that alive.txt and dead.txt files exist."""
-    files = ["alive.txt", "dead.txt"]
+    files = ["ips/alive.txt", "ips/dead.txt"]
     for file in files:
         try:
             if not os.path.exists(file):
@@ -82,14 +82,14 @@ def main():
         return
 
     try:
-        with open("alive.txt", "w") as alive_file:
+        with open("ips/alive.txt", "w") as alive_file:
             alive_file.write("\n".join(alive_ips))
         logging.info("Alive IPs saved to alive.txt.")
     except Exception as e:
         logging.error(f"Failed to save alive IPs: {e}")
 
     try:
-        with open("dead.txt", "w") as dead_file:
+        with open("ips/dead.txt", "w") as dead_file:
             dead_file.write("\n".join(dead_ips))
         logging.info("Dead IPs saved to dead.txt.")
     except Exception as e:

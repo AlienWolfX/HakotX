@@ -325,7 +325,7 @@ class SearchApp(App):
     
     def _perform_search(self, search_term):
         self.results_layout.clear_widgets()
-        csv_folder = os.path.join(os.path.dirname(__file__), '..', 'csv')
+        csv_folder = os.path.join(os.path.dirname(__file__), 'csv')
         
         if not os.path.exists(csv_folder):
             self.show_placeholder("CSV folder not found!")
