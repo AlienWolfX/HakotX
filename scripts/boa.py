@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import logging
 from dotenv import load_dotenv
 import configparser
+import time
 
 load_dotenv()
 
@@ -38,7 +39,7 @@ def send_login_request(session, ip):
     data = {"username": username, "password": password}
 
     response = session.post(url, headers=headers, data=data)
-    response.raise_for_status()  # Raise an exception if the request fails
+    response.raise_for_status() 
     logging.info(f"Login request sent successfully to {ip}")
 
 
@@ -78,35 +79,34 @@ def main():
         for ip in ip_list:
             try:
                 send_login_request(session, ip)
+                time.sleep(0.5)
                 send_download_request(session, ip)
             except requests.RequestException as e:
                 logging.error(f"Failed to send requests to {ip}: {str(e)}")
 
 
 def parse_xml_files(directory):
-    """Parses XML files in a directory and returns a list of (SSID, KeyPassphrase) tuples."""
+    """Parses XML files in a directory and returns a list of (IP, SSID, KeyPassphrase, MAC Address) tuples."""
     ssid_key_pairs = []
 
-    # Iterate over all files in the directory
     for filename in os.listdir(directory):
         if filename.endswith(".xml"):
             file_path = os.path.join(directory, filename)
-
+            ip = filename[:-4]
             try:
-                # Parse the XML file
                 tree = ET.parse(file_path)
                 root = tree.getroot()
 
-                # Find the SSID and KeyPassphrase elements
                 ssid_element = root.find(".//Value[@Name='SSID']")
                 keypassphrase_element = root.find(".//Value[@Name='WSC_PSK']")
+                mac_address_element = root.find(".//Value[@Name='macAddr']") 
 
-                # Extract the values if elements are found
-                if ssid_element is not None and keypassphrase_element is not None:
+                if ssid_element is not None and keypassphrase_element is not None and mac_address_element is not None:
                     ssid = ssid_element.attrib["Value"]
                     keypassphrase = keypassphrase_element.attrib["Value"]
+                    mac_address = mac_address_element.attrib["Value"]
 
-                    ssid_key_pairs.append((ssid, keypassphrase))
+                    ssid_key_pairs.append((ip, ssid, keypassphrase, mac_address))
             except ET.ParseError as e:
                 logging.error(f"Error parsing XML file {file_path}: {str(e)}")
 
@@ -117,7 +117,7 @@ def save_to_csv(pairs, output_file):
     sorted_pairs = sorted(pairs, key=lambda x: x[0])
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "KeyPassphrase"])
+        writer.writerow(["IP", "SSID", "KeyPassphrase", "MAC Address"])
         writer.writerows(sorted_pairs)
 
 
@@ -129,17 +129,6 @@ if __name__ == "__main__":
 
         pairs = parse_xml_files(directory_path)
 
-        # Add IP address to each pair
-        ip_list = [
-            file_name[:-4]
-            for file_name in os.listdir(directory_path)
-            if file_name.endswith(".xml")
-        ]
-        pairs_with_ip = [
-            (ip, ssid, keypassphrase)
-            for ip, (ssid, keypassphrase) in zip(ip_list, pairs)
-        ]
-
-        save_to_csv(pairs_with_ip, output_file)
+        save_to_csv(pairs, output_file)
     except Exception as e:
         logging.error(f"An error occurred: {str(e)}")
