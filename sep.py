@@ -2,6 +2,7 @@ import requests
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import ipaddress
+import hashlib
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -11,14 +12,16 @@ def check_ip(ip, timeout=4):
 
     try:
         response = requests.get(url, timeout=timeout)
+        response_hash = hashlib.md5(response.text.encode()).hexdigest()
         response.raise_for_status()
+        
     except requests.exceptions.RequestException as e:
         logging.info(f"IP {ip} failed to respond within the timeout: {e}")
         return None
     
-    if "Welcome to XPON ONU" in response.text:
-        logging.info(f"IP {ip} is Sopto XPON")
-        return "sopto", ip
+    if "e474ea77307d75a23761377527e50bb4" in response_hash:
+        logging.info(f"IP {ip} is SPU-GE22WD-H")
+        return "SPU-GE22WD-H", ip
 
     elif "Copyright (c) Realtek Semiconductor Corp., 2003. All Rights Reserved." in response.text:
         logging.info(f"IP {ip} is Realtek GPON")
@@ -28,25 +31,29 @@ def check_ip(ip, timeout=4):
         logging.info(f"IP {ip} is Uniway")
         return "uniway", ip
 
-    elif "Home Gateway" in response.text:
-        logging.info(f"IP {ip} is Home Gateway")
-        return "home_gateway", ip
-
-    elif '<img src="web/images/logo.png" alt="">' in response.text:
-        logging.info(f"IP {ip} is Onu WEB System (mini-httpd)")
-        return "mini", ip
-
-    elif f'document.location = "login.asp";;' in response.text:
-        logging.info(f"IP {ip} is Onu WEB System (boa)")
-        return "boa", ip
-
-    elif "LuCI - Lua Configuration Interface" in response.text:
-        logging.info(f"IP {ip} is LuCi")
-        return "luci", ip
+    elif "58c428178693963ffbae98857bb5f263" in response_hash:
+        logging.info(f"IP {ip} is ONU4FER1TVASWB")
+        return "ONU4FER1TVASWB", ip
     
-    elif f'document.location = "index.asp";' in response.text: 
-        logging.info(f"IP {ip} is GPNF14C")
-        return "gpnf14c", ip
+    elif "b03c4b0b71167fb988046e201a23b8b7" in response_hash:
+        logging.info(f"IP {ip} is SPU-GE120W-H")
+        return "SPU-GE120W-H", ip
+
+    elif "df1d6d405702aa678f0ef3cf80105874" in response_hash:
+        logging.info(f"IP {ip} is KingType(PN_BH2_03-02)")
+        return "PN_BH2_03-02", ip
+
+    elif "16330cbd9f45bbe158679410ede94156" in response_hash:
+        logging.info(f"IP {ip} is KingType(XPN_RH2_00-07)")
+        return "XPN_RH2_00-07", ip
+
+    elif "b55993cb73060a58d829dc134ca2be09" in response_hash:
+        logging.info(f"IP {ip} is KingType(AR9331)")
+        return "AR9331", ip
+    
+    elif "82fc2f1160692df5c19a127728037f47" in response_hash: 
+        logging.info(f"IP {ip} is KingType(GPNF14C)")
+        return "GPNF14C", ip
 
     else:
         logging.info(f"IP {ip} is Unknown")
@@ -69,12 +76,13 @@ def main():
         ip_results = {
             "uniway": [],
             "realtek": [],
-            "home_gateway": [],
-            "mini": [],
-            "sopto": [],
-            "boa": [],
-            "luci": [],
-            "gpnf14c": [],
+            "ONU4FER1TVASWB": [],
+            "PN_BH2_03-02": [],
+            "SPU-GE22WD-H": [],
+            "XPN_RH2_00-07": [],
+            "AR9331": [],
+            "GPNF14C": [],
+            "SPU-GE120W-H": [],
             "unknown": [],
         }
         failed_ips = []
