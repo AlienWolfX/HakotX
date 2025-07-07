@@ -26,19 +26,20 @@ def delete_files_by_extension(directory, extension):
             print(f"Deleted file: {file}")
 
 directory_paths = [
-    "boa_xml/",
-    "home_xml/",
-    "luci_conf/",
-    "sopto_xml/",
-    "mini_xml/",
     "realtek_xml/",
     "uniway_xml/",
-    "gpnf14c_xml/",
+    "onu4fer1tvaswb_xml/",
+    "pn_bh2_03_02_xml/",
+    "spu_ge22wd_h_xml/",  
+    "xpn_rh2_00_07_xml/",  
+    "ar9331_xml/",
+    "gpnf14c_xml/",  
+    "spu_ge120w_h_xml/",
+
 ]
 
 # Delete CSV and TXT files in current directory
 delete_files_by_extension(".", "csv")
-# delete_files_by_extension(".", "txt")
 
 # Delete XML files in specified directories
 delete_files_in_directories(directory_paths)
