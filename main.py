@@ -72,10 +72,12 @@ def main():
     """Main function that processes a range of IP addresses and saves the results to files."""
     ensure_files_exist()
     
-    ip_range1 = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
-    ip_range2 = [str(ip) for ip in ipaddress.IPv4Network('10.17.0.0/20')]
-    
-    ip_range = ip_range1 + ip_range2
+    ip_range1 = [str(ip) for ip in ipaddress.IPv4Network('172.17.0.0/20')]
+    ip_range2 = [str(ip) for ip in ipaddress.IPv4Network('172.18.0.0/20')]
+    ip_range3 = [str(ip) for ip in ipaddress.IPv4Network('10.17.0.0/20')]
+    ip_range4 = [str(ip) for ip in ipaddress.IPv4Network('10.18.0.0/20')]
+
+    ip_range = ip_range1 + ip_range2 + ip_range3 + ip_range4
 
     logging.info("Starting IP range processing.")
     alive_ips, dead_ips = process_ip_range(ip_range)
