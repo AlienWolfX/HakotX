@@ -2,6 +2,8 @@
 
 import os
 import glob
+from datetime import datetime
+import zipfile
 
 def delete_files_in_directories(directory_paths):
     """Delete XML files in the specified directories."""
@@ -28,7 +30,7 @@ def delete_files_by_extension(directory, extension):
 directory_paths = [
     "realtek_xml/",
     "uniway_xml/",
-    # "onu4fer1tvaswb_xml/",
+    # "onu4fer1tvaswb_xml/", commented out as it needs review
     "pn_bh2_03_02_xml/",
     "spu_ge22wd_h_xml/",  
     "xpn_rh2_00-07_xml/",  
@@ -36,13 +38,28 @@ directory_paths = [
     "gpnf14c_xml/",  
 ]
 
-# Creates a copy of the csv
+def compress_csv_files(source_dir, dest_dir):
+    """Compress all CSV files from source directory into a single ZIP file with CONFIG-DATE format."""
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
 
+    zip_filename = f"CONFIG-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.zip"
+    zip_path = os.path.join(dest_dir, zip_filename)
+    
+    csv_files = glob.glob(os.path.join(source_dir, "*.csv"))
+    
+    if csv_files:
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for csv_file in csv_files:
+                filename = os.path.basename(csv_file)
+                zipf.write(csv_file, filename)
+                print(f"Added to archive: {filename}")
+        print(f"Created archive: {zip_path}")
+    else:
+        print("No CSV files found to compress")
 
-
+compress_csv_files("./csv", "./csv_backup")
 
 delete_files_by_extension("./csv", "csv")
-
-# Delete XML files in specified directories
 delete_files_in_directories(directory_paths)
 print("Done!")
