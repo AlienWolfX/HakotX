@@ -36,8 +36,12 @@ directory_paths = [
     "gpnf14c_xml/",  
 ]
 
-# Delete CSV and TXT files in current directory
-delete_files_by_extension(".", "csv")
+# Creates a copy of the csv
+
+
+
+
+delete_files_by_extension("./csv", "csv")
 
 # Delete XML files in specified directories
 delete_files_in_directories(directory_paths)
