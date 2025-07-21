@@ -12,7 +12,7 @@ def delete_files_in_directories(directory_paths):
     """Delete XML files in the specified directories."""
     for directory in directory_paths:
         if not os.path.isdir(directory):
-            logging.info(f"Directory not found: {directory}")
+            logging.error(f"Directory not found: {directory}")
             continue
         for xml_file in glob.glob(os.path.join(directory, "*.xml")):
             if os.path.isfile(xml_file):
@@ -28,7 +28,7 @@ def delete_files_by_extension(directory, extension):
     for file in glob.glob(os.path.join(directory, f"*.{extension}")):
         if os.path.isfile(file):
             os.remove(file)
-            print(f"Deleted file: {file}")
+            logging.info(f"Deleted file: {file}")
 
 directory_paths = [
     "realtek_xml/",
@@ -59,7 +59,7 @@ def compress_csv_files(source_dir, dest_dir):
                 logging.info(f"Added to archive: {filename}")
         logging.info(f"Created archive: {zip_path}")
     else:
-        logging.info("No CSV files found to compress")
+        logging.error("No CSV files found to compress")
 
 compress_csv_files("./csv", "./csv_backup")
 
