@@ -4,21 +4,24 @@ import os
 import glob
 from datetime import datetime
 import zipfile
+import logging
+
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def delete_files_in_directories(directory_paths):
     """Delete XML files in the specified directories."""
     for directory in directory_paths:
         if not os.path.isdir(directory):
-            print(f"Directory not found: {directory}")
+            logging.info(f"Directory not found: {directory}")
             continue
         for xml_file in glob.glob(os.path.join(directory, "*.xml")):
             if os.path.isfile(xml_file):
                 os.remove(xml_file)
-                print(f"Deleted file: {xml_file}")
+                logging.info(f"Deleted file: {xml_file}")
         for txt_file in glob.glob(os.path.join(directory, "*.txt")):
             if os.path.isfile(txt_file):
                 os.remove(txt_file)
-                print(f"Deleted file: {txt_file}")
+                logging.info(f"Deleted file: {txt_file}")
 
 def delete_files_by_extension(directory, extension):
     """Delete files with specified extension in the given directory."""
@@ -53,13 +56,13 @@ def compress_csv_files(source_dir, dest_dir):
             for csv_file in csv_files:
                 filename = os.path.basename(csv_file)
                 zipf.write(csv_file, filename)
-                print(f"Added to archive: {filename}")
-        print(f"Created archive: {zip_path}")
+                logging.info(f"Added to archive: {filename}")
+        logging.info(f"Created archive: {zip_path}")
     else:
-        print("No CSV files found to compress")
+        logging.info("No CSV files found to compress")
 
 compress_csv_files("./csv", "./csv_backup")
 
 delete_files_by_extension("./csv", "csv")
 delete_files_in_directories(directory_paths)
-print("Done!")
+logging.info("Done!")
