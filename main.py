@@ -106,6 +106,8 @@ def main():
         time.sleep(2)
         subprocess.run([sys.executable, "sep.py"], check=True)
         logging.info("Subprocesses completed successfully.")
+        time.sleep(2)
+        
     except subprocess.CalledProcessError as e:
         logging.error(f"Subprocess failed: {e}")
 
