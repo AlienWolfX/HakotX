@@ -47,6 +47,14 @@ def download_backup_settings(ip):
         logging.error(f"Failed to download backupsettings.conf from {ip}: {e}")
         return None
 
+def normalize_mac(mac):
+    """Normalize MAC address to uppercase with colons."""
+    mac = mac.replace(':', '').replace('-', '').replace('.', '').upper()
+    if len(mac) >= 12:
+        mac = mac[:12] 
+        return ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac
+
 def parse_xml_file(file_path, ip):
     """Parses an XML file and returns a list of (IP, SSID, KeyPassphrase) tuples."""
     ssid_key_pairs = []
@@ -58,15 +66,17 @@ def parse_xml_file(file_path, ip):
         logging.error(f"Failed to parse XML file {file_path}: {e}")
         return ssid_key_pairs
 
+    mac_elements = root.findall(".//SerialNumber")
     ssid_elements = root.findall(".//SSID")
     keypassphrase_elements = root.findall(".//KeyPassphrase")
 
-    if ssid_elements and keypassphrase_elements:
+    if mac_elements and ssid_elements and keypassphrase_elements:
+        mac_normalized = normalize_mac(mac_elements[0].text)
         ssid = ssid_elements[0].text
 
         for i in range(len(keypassphrase_elements) - 1):
             keypassphrase = keypassphrase_elements[i + 1].text
-            ssid_key_pairs.append((ip, ssid, keypassphrase))
+            ssid_key_pairs.append((ip, mac_normalized, ssid, keypassphrase))
 
     return ssid_key_pairs
 
@@ -80,11 +90,11 @@ def read_ips_from_file(file_path):
         return []
 
 def write_pairs_to_csv(pairs, file_path):
-    """Writes a list of (IP, SSID, KeyPassphrase) tuples to a CSV file."""
+    """Writes a list of (IP, MAC, SSID, KeyPassphrase) tuples to a CSV file."""
     try:
         with open(file_path, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["IP", "SSID_2G", "PSK_2G"])
+            writer.writerow(["IP", "MAC", "SSID_2G", "PSK_2G"])
             writer.writerows(pairs)
         logging.info(f"Data written to CSV file {file_path}")
     except Exception as e:

@@ -77,6 +77,14 @@ def download_config(ip, csrf):
         logging.error(f"Error downloading config from {ip}")
         return False
 
+def normalize_mac(mac):
+    """Normalize MAC address to uppercase with colons."""
+    mac = mac.replace(':', '').replace('-', '').replace('.', '').upper()
+    if len(mac) >= 12:
+        mac = mac[:12] 
+        return ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac
+
 def parse_xml_files(directory):
     ssid_key_pairs = []
 
@@ -88,14 +96,16 @@ def parse_xml_files(directory):
                 tree = ET.parse(file_path)
                 root = tree.getroot()
 
+                mac_element = root.find(".//Value[@Name='MacAddr']")
                 ssid_element = root.find(".//Value[@Name='ssid']")
                 keypassphrase_element = root.find(".//Value[@Name='WLAN_WPA_PSK']")
 
-                if ssid_element is not None and keypassphrase_element is not None:
+                if mac_element is not None and ssid_element is not None and keypassphrase_element is not None:
+                    mac_normalized = normalize_mac(mac_element.attrib.get("Value", ""))
                     ssid = ssid_element.attrib.get("Value", "")
                     keypassphrase = keypassphrase_element.attrib.get("Value", "")
                     ip = filename.replace(".xml", "")
-                    ssid_key_pairs.append((ip, ssid, keypassphrase))
+                    ssid_key_pairs.append((ip, mac_normalized, ssid, keypassphrase))
             except ET.ParseError as e:
                 logging.error(f"Error parsing XML file {file_path}: {e}")
 
@@ -107,7 +117,7 @@ def save_to_csv(pairs, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID_2G", "PSK_2G"])
+        writer.writerow(["IP", "MAC", "SSID_2G", "PSK_2G"])
         writer.writerows(sorted_pairs)
 
 def main():

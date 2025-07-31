@@ -91,6 +91,14 @@ def download_config(ip):
     except Exception as e:
         logging.error(f"Error downloading config from {ip}: {str(e)}")
         return False
+
+def normalize_mac(mac):
+    """Normalize MAC address to uppercase with colons."""
+    mac = mac.replace(':', '').replace('-', '').replace('.', '').upper()
+    if len(mac) >= 12:
+        mac = mac[:12] 
+        return ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac
     
 def parse_xml_files(directory):
     ssid_key_pairs = []
@@ -103,18 +111,23 @@ def parse_xml_files(directory):
                 tree = ET.parse(file_path)
                 root = tree.getroot()
 
+                mac_elements = root.findall(".//Value[@Name='MacAddr']")
+                mac_addr = ""
+                if len(mac_elements) > 1:
+                    mac_addr = normalize_mac(mac_elements[1].attrib.get("Value", ""))
+
                 ssid_2g = root.find(".//Value[@Name='WLAN1_SSID']")
                 psk_2g = root.find(".//Value[@Name='WLAN1_WPA_PSK']")
                 ssid_5g = root.find(".//Value[@Name='SSID']")
                 psk_5g = root.find(".//Value[@Name='WLAN_WPA_PSK']")
 
                 if ssid_2g is not None and psk_2g is not None and ssid_5g is not None and psk_5g is not None:
-                    ssid_2g = ssid_2g.attrib.get("Value", "")
-                    psk_2g = psk_2g.attrib.get("Value", "")
-                    ssid_5g = ssid_5g.attrib.get("Value", "")
-                    psk_5g = psk_5g.attrib.get("Value", "")
+                    ssid_2g_val = ssid_2g.attrib.get("Value", "")
+                    psk_2g_val = psk_2g.attrib.get("Value", "")
+                    ssid_5g_val = ssid_5g.attrib.get("Value", "")
+                    psk_5g_val = psk_5g.attrib.get("Value", "")
                     ip = filename.replace(".xml", "")
-                    ssid_key_pairs.append((ip, ssid_2g, psk_2g, ssid_5g, psk_5g))
+                    ssid_key_pairs.append((ip, mac_addr, ssid_2g_val, psk_2g_val, ssid_5g_val, psk_5g_val))
             except ET.ParseError as e:
                 logging.error(f"Error parsing XML file {file_path}: {e}")
 
@@ -126,7 +139,7 @@ def save_to_csv(pairs, output_file):
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID_2G", "PSK_2G", "SSID_5G", "PSK_5G"])
+        writer.writerow(["IP", "MAC", "SSID_2G", "PSK_2G", "SSID_5G", "PSK_5G"])
         writer.writerows(sorted_pairs)
 
 def main():

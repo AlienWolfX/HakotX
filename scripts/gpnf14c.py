@@ -109,6 +109,14 @@ def login_and_download(ip):
         logging.error(f"Error processing {ip}: {str(e)}")
         return False
 
+def normalize_mac(mac):
+    """Normalize MAC address to uppercase with colons."""
+    mac = mac.replace(':', '').replace('-', '').replace('.', '').upper()
+    if len(mac) >= 12:
+        mac = mac[:12] 
+        return ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac
+
 def parse_xml_files():
     """Parse XML files and extract SSID and PSK values."""
     xml_dir = XML_DIRECTORY
@@ -128,6 +136,7 @@ def parse_xml_files():
 
         try:
             # Read file as text
+            mac_addr = ''
             ssid_2g = ''
             psk_2g = ''
             ssid_5g = ''
@@ -135,7 +144,9 @@ def parse_xml_files():
             
             with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                 for line in f:
-                    if 'Name="WLAN1_SSID"' in line:
+                    if 'Name="MacAddr"' in line:
+                        mac_addr = normalize_mac(line.split('Value="')[1].split('"')[0])
+                    elif 'Name="WLAN1_SSID"' in line:
                         ssid_2g = line.split('Value="')[1].split('"')[0]
                     elif 'Name="WLAN1_WPA_PSK"' in line:
                         psk_2g = line.split('Value="')[1].split('"')[0]
@@ -144,8 +155,8 @@ def parse_xml_files():
                     elif 'Name="WLAN_WPA_PSK"' in line:
                         psk_5g = line.split('Value="')[1].split('"')[0]
 
-            if ssid_2g or psk_2g or ssid_5g or psk_5g:
-                results.append([ip, ssid_2g, psk_2g, ssid_5g, psk_5g])
+            if mac_addr or ssid_2g or psk_2g or ssid_5g or psk_5g:
+                results.append([ip, mac_addr, ssid_2g, psk_2g, ssid_5g, psk_5g])
                 logging.info(f"Processed {ip}")
 
         except Exception as e:
