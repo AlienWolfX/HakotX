@@ -84,6 +84,13 @@ def main():
             except requests.RequestException as e:
                 logging.error(f"Failed to send requests to {ip}: {str(e)}")
 
+def normalize_mac(mac):
+    """Normalize MAC address to uppercase with colons."""
+    mac = mac.replace(':', '').replace('-', '').replace('.', '').upper()
+    if len(mac) >= 12:
+        mac = mac[:12] 
+        return ':'.join(mac[i:i+2] for i in range(0, 12, 2))
+    return mac
 
 def parse_xml_files(directory):
     """Parses XML files in a directory and returns a list of (IP, SSID, KeyPassphrase, MAC Address) tuples."""
@@ -99,14 +106,14 @@ def parse_xml_files(directory):
 
                 ssid_element = root.find(".//Value[@Name='SSID']")
                 keypassphrase_element = root.find(".//Value[@Name='WSC_PSK']")
-                mac_address_element = root.find(".//Value[@Name='macAddr']") 
+                mac_element = root.find(".//Value[@Name='macAddr']") 
 
-                if ssid_element is not None and keypassphrase_element is not None and mac_address_element is not None:
+                if mac_element is not None and ssid_element is not None and keypassphrase_element is not None:
                     ssid = ssid_element.attrib["Value"]
                     keypassphrase = keypassphrase_element.attrib["Value"]
-                    mac_address = mac_address_element.attrib["Value"]
+                    mac = normalize_mac(mac_element.attrib["Value"])
 
-                    ssid_key_pairs.append((ip, ssid, keypassphrase, mac_address))
+                    ssid_key_pairs.append((ip, mac, ssid, keypassphrase))
             except ET.ParseError as e:
                 logging.error(f"Error parsing XML file {file_path}: {str(e)}")
 
@@ -117,7 +124,7 @@ def save_to_csv(pairs, output_file):
     sorted_pairs = sorted(pairs, key=lambda x: x[0])
     with open(output_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["IP", "SSID", "KeyPassphrase", "MAC Address"])
+        writer.writerow(["IP", "MAC", "SSID", "KeyPassphrase"])
         writer.writerows(sorted_pairs)
 
 
